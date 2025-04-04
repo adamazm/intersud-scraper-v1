@@ -16,6 +16,12 @@ This project is an AI-powered web scraper designed to gather company information
    pip install -r requirements.txt
    ```
 
+## Install Playwright
+
+```sh
+   playwright install
+```
+
 ## Running the API
 
 To start the API locally, run:
@@ -34,4 +40,7 @@ To launch the Streamlit interface for visualization and interaction, run:
 streamlit run main.py
 ```
 
-## TODO:
+## About
+
+The scrapers operate using `browser-use` along with Playwright to extract data efficiently.
+The prompts for the agents are located in the `tasks/` folder if modifications are needed.
