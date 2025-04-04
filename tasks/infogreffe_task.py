@@ -1,0 +1,79 @@
+def infogreffe_scrape_task(company_id: str, id_type):
+    """
+    Infogreffe scraping task to retrieve company information.
+
+    :param company_id: The identification of the company to scrape data for.
+    :param id_type: The type of ID (e.g. Name, SIREN, SIRET) to be used for scraping.
+    :return: A formatted string with instructions for scraping Infogreffe.
+    """
+
+    return f"""Follow these steps to efficiently retrieve company information from Infogreffe:
+
+    1. Go to https://www.infogreffe.fr/ and accept cookies if prompted.
+
+    2. Locate the search bar, ensure it is active, and enter the company's identifications: {company_id}, which is the company's {id_type}, then press Enter or click the search button.
+
+    3. Wait for the results to load and click on the first relevant result to access the company profile.
+
+    4. Expand all collapsible sections to ensure all information is visible before extraction.
+
+    5. Extract and organize useful information from the following sections, presenting each in a clear and readable format, for example:
+
+        - **Identité**:
+            - Company Name: ...
+            - SIRET / SIREN: ...
+            - Legal Form: ...
+            - Date of Incorporation: ...
+            - Address: ...
+            - Status: ...
+        
+        - **Dirigeants (Executives)**:
+            - Full Name: ...
+            - Position: ...
+            - Appointment Date: ...
+            - Additional Details: ...
+
+        - **Bénéficiaires Effectifs (Beneficial Owners)**:
+            - Owner Name: ...
+            - Ownership Percentage: ...
+            - Date of Declaration: ...
+        
+        - **Analyse Financière (Financial Analysis)**:
+            - Annee XXXX:
+                - Chiffre d'Affaires (Revenue): ...
+                - Résultat: ...
+                - Effectif: ...
+            - Annee YYYY:
+                - Chiffre d'Affaires (Revenue): ...
+                - Résultat: ...
+                - Effectif: ...
+
+    6. Skip the **Documents** section.
+
+    7. For the **Etablissements (Establishments)** section, try to extract the texts from the card/modal and then organize them into a list. If the information is not available, mark it as "Not available".
+
+    8. If a section is missing or unparseable, label it as "Not available" and continue.
+
+    9. Compile all extracted information into a well-structured text document using section headers and bullet points, for example:
+
+        Identité:
+        - ...
+
+        Dirigeants:
+        - ...
+
+        Bénéficiaires Effectifs:
+        - ...
+
+        Analyse Financière:
+        - ...
+
+        Établissements:
+        - ...
+
+    Important Notes:
+    - Ensure all sections are expanded before extracting data.
+    - Ensure all the years present in the financial analysis are extracted.
+    - If a section is unavailable, mark it as "Not available" and move on.
+    - The final output should be a clean, human-readable document containing all available information.
+    """
