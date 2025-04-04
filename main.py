@@ -14,8 +14,10 @@ st.title("Company Data Scraper")
 # First Input: Company Identification
 company_id = st.text_input("Enter the Company's Identification:")
 
-# Second Input: Identification Type (e.g. Name, SIREN, SIRET, etc.)
-id_type = st.text_input("Identification Type:")
+id_type = st.selectbox(
+    "Identification Type:",
+    ["Name", "SIREN", "SIRET", "Other"]  # Add more options as needed
+)
 
 # If button is clicked
 if st.button("Scrape"):
