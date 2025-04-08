@@ -28,8 +28,9 @@ def pappers_scrape_task(company_id: str, id_type):
         - **Comment contacter ...**: Provide available contact information.
         - **Entreprises citées de ...**: List referenced companies if available.
 
-    5. Structure the output in a clear, readable format with section titles and bullet points for each detail. For example:
-
+    5. Structure the output in a clear, readable format with section titles and bullet points for each detail and indicate at the top of the document that the info is scraped from pappers.fr. For example:
+        From Pappers.fr:
+        
         Informations juridiques de ...:
         - Forme juridique: ...
         - Capital social: ...
@@ -45,4 +46,4 @@ def pappers_scrape_task(company_id: str, id_type):
 
     6. If information for a section is unavailable or unparseable, skip that section and continue.
 
-    The final output should be a well-organized, human-readable text document containing all available information."""
+    The final output should be a well-organized, human-readable text document containing all available information and indicate at the top of the document that the info is scraped from pappers.fr."""

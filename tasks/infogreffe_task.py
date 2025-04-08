@@ -54,8 +54,10 @@ def infogreffe_scrape_task(company_id: str, id_type):
 
     8. If a section is missing or unparseable, label it as "Not available" and continue.
 
-    9. Compile all extracted information into a well-structured text document using section headers and bullet points, for example:
+    9. Compile all extracted information into a well-structured text document using section headers and bullet points and indicate at the top of the document that the info is scraped from infogreffe.fr, for example:
 
+        From Infogreffe.fr:
+        
         Identité:
         - ...
 
@@ -75,5 +77,5 @@ def infogreffe_scrape_task(company_id: str, id_type):
     - Ensure all sections are expanded before extracting data.
     - Ensure all the years present in the financial analysis are extracted.
     - If a section is unavailable, mark it as "Not available" and move on.
-    - The final output should be a clean, human-readable document containing all available information.
+    - The final output should be a clean, human-readable document containing all available information and indicate at the top of the document that the info is scraped from infogreffe.fr.
     """
