@@ -1,12 +1,13 @@
 import streamlit as st
-from scraper import Scraper
 from browser_use import Browser
 from config import openai_model, browser_config
 import requests
+import json
 
 # Initialize the browser and scraper
 browser = Browser(browser_config)
-scraper = Scraper(llm_model=openai_model, browser=browser)
+
+url = "http://127.0.0.1:5000"
 
 # Title
 st.title("Company Data Scraper")
@@ -24,16 +25,27 @@ if st.button("Scrape"):
 
     # Spinner loading animation
     with st.spinner("Scraping in progress..."):
+        st.info(
+            f"Searching the company info for '{company_id}' using it's {id_type}...")
 
         # Make a POST request to the Flask API
         response = requests.post(
-            'http://127.0.0.1:5001/get-company-data',
+            f'{url}/get-company-data',
             data={'company_id': company_id, 'id_type': id_type}
         )
 
-        # Decode the Unicode escape sequences
-        decoded_result = response.text.encode().decode('unicode_escape')
+        # Parse the JSON response
+        try:
+            result_json = response.json()
+            # Extract just the data part
+            if "data" in result_json:
+                display_text = result_json["data"]
+            else:
+                display_text = str(result_json)
+        except json.JSONDecodeError:
+            # Fallback if response isn't valid JSON
+            display_text = response.text
 
     # Display the result in a text area
     with st.expander("Scraped Data", expanded=True):
-        st.text_area("Compiled Info", value=str(decoded_result), height=300)
+        st.text_area("Compiled Info", value=display_text, height=300)

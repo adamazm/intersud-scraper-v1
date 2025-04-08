@@ -33,8 +33,9 @@ def societe_scrape_task(company_id: str, id_type):
 
     11. Once you find the correct director, extract and organize all available information about the director in a **clear, readable format**.
 
-    12. Compile the company and director information into a **well-organized document** with clear section headers and bullet points. For example:
-
+    12. Compile the company and director information into a **well-organized document** with clear section headers and bullet points and indicate at the top of the document that the info is scraped from Societe.com. For example:
+        From Societe.com:
+        
         Company Information:
         - Company Name: ...
         - Address: ...
@@ -49,5 +50,5 @@ def societe_scrape_task(company_id: str, id_type):
     - Always scroll to the top before performing searches or analyzing results.
     - If information for a section is unavailable or unparseable, skip that section and continue.
     - If the director name is not provided, only extract the company information.
-    - The final output should be a **human-readable document** containing all available information with clear section titles and bullet points.
+    - The final output should be a **human-readable document** containing all available information with clear section titles and bullet points and indicate at the top of the document that the info is scraped from Societe.com.
     """
