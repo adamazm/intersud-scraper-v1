@@ -1,6 +1,6 @@
 from agents import Agent, Runner
 from dotenv import load_dotenv
-from config import example_result
+from config import result_instruction
 
 load_dotenv()
 
@@ -13,7 +13,7 @@ class TranslatorAgent:
 
         self.agent = Agent(
             name="Translator Agent",
-            instructions=f"Translate the result of the text given which is an appended texts from different sources to French. Make sure the accents are decoded. Then from bullet points (if they are in bullet points), transform them into paragraphs. The result should be in the same format as the example: {example_result}",
+            instructions=result_instruction,
             model="gpt-4o",
         )
 

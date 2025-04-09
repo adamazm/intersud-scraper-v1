@@ -1,4 +1,5 @@
-example_result = """JURIDIQUE
+example_result = """
+JURIDIQUE
 
 Immatriculée depuis 2005, cette société siège à l'adresse indiquée en rubrique au 1114 Av Of The Americas, 99404 New York aux Etats-Unis.
 L'adresse du 75 Quai D'Orsay, 75007 Paris correspond à l'établissement secondaire. C'est également le siège d'AIR LIQUIDE SA, qui établit les états financiers consolidés.
