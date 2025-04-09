@@ -7,7 +7,7 @@ class PappersAgent(ScraperAgent):
     PappersAgent class to scrape data from Pappers website.
     """
 
-    def __init__(self, llm_model, browser, company_id, id_type):
+    def __init__(self, llm_model, browser, company_id, id_type, cancel_event=None):
         """
         Initialize the PappersAgent with a language model, browser instance, company ID, and ID type.
 
@@ -17,7 +17,7 @@ class PappersAgent(ScraperAgent):
         :param id_type: The type of ID (e.g. Name, SIREN, SIRET) to be used for scraping.
         """
 
-        super().__init__(llm_model, browser)
+        super().__init__(llm_model, browser, cancel_event)
         self.company_id = company_id
         self.id_type = id_type
 
