@@ -3,7 +3,7 @@ from browser_use import Agent
 
 
 class ScraperAgent(ABC):
-    def __init__(self, llm_model, browser):
+    def __init__(self, llm_model, browser, cancel_event=None):
         """
         Initialize the ScraperAgent with a language model and browser instance.
 
@@ -14,6 +14,7 @@ class ScraperAgent(ABC):
         self.llm_model = llm_model
         self.browser = browser
         self.agent = None
+        self.cancel_event = cancel_event
 
     @abstractmethod
     def create_task(self):
@@ -43,9 +44,14 @@ class ScraperAgent(ABC):
         :return: The final result from the agent after running the task.
         """
 
+        if self.cancel_event and self.cancel_event.is_set():
+            print("Agent cancelled before starting")
+            return None
+
         if not self.agent:
             self.initialize_agent()
         result = await self.agent.run()
+
         return result.final_result()
 
     async def save_output(self, output_path):

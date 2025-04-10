@@ -1,0 +1,52 @@
+[
+  {
+    "nomcommercial": "AIR LIQUIDE INTERNATIONAL CORPORATION",
+    "siren": "487680811",
+    "nafcode": "6420Z",
+    "naflib": "Activités des sociétés holding",
+    "cpville": "10036 NEW-YORK",
+    "dep": "10",
+    "longitude": "",
+    "latitude": ""
+  },
+  {
+    "nomcommercial": "AIR LIQUIDE SANTE INTERNATIONAL",
+    "siren": "552134728",
+    "nafcode": "6420Z",
+    "naflib": "Activités des sociétés holding",
+    "cpville": "75007 PARIS",
+    "dep": "75",
+    "longitude": "",
+    "latitude": ""
+  },
+  {
+    "nomcommercial": "AIR LIQUIDE INTERNATIONAL",
+    "siren": "552134736",
+    "nafcode": "6420Z",
+    "naflib": "Activités des sociétés holding",
+    "cpville": "75007 PARIS",
+    "dep": "75",
+    "longitude": "",
+    "latitude": ""
+  },
+  {
+    "nomcommercial": "AIR LIQUIDE HEALTHCARE INTERNATIONAL SERVICES & TECHNOLOGY",
+    "siren": "808636955",
+    "nafcode": "6203Z",
+    "naflib": "Gestion d'installations informatiques",
+    "cpville": "75007 PARIS",
+    "dep": "75",
+    "longitude": "",
+    "latitude": ""
+  },
+  {
+    "nomcommercial": "AIR LIQUIDE BIOGAS INTERNATIONAL",
+    "siren": "844431387",
+    "nafcode": "2011Z",
+    "naflib": "Fabrication de gaz industriels",
+    "cpville": "38360 SASSENAGE",
+    "dep": "38",
+    "longitude": "",
+    "latitude": ""
+  }
+]
