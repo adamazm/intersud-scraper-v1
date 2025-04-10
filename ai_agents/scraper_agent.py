@@ -51,6 +51,7 @@ class ScraperAgent(ABC):
         if not self.agent:
             self.initialize_agent()
         result = await self.agent.run()
+
         return result.final_result()
 
     async def save_output(self, output_path):

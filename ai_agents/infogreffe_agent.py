@@ -7,7 +7,7 @@ class InfogreffeAgent(ScraperAgent):
     InfogreffeAgent class to scrape data from Infogreffe website.
     """
 
-    def __init__(self, llm_model, browser, company_id, id_type, cancel_event=None):
+    def __init__(self, llm_model, browser, company_id, id_type="SIREN", cancel_event=None):
         """
         Initialize the InfogreffeAgent with a language model, browser instance, company ID, and ID type.
 

@@ -7,7 +7,7 @@ class PappersAgent(ScraperAgent):
     PappersAgent class to scrape data from Pappers website.
     """
 
-    def __init__(self, llm_model, browser, company_id, id_type, cancel_event=None):
+    def __init__(self, llm_model, browser, company_id, id_type="SIREN", cancel_event=None):
         """
         Initialize the PappersAgent with a language model, browser instance, company ID, and ID type.
 

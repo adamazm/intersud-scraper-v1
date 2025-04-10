@@ -3,7 +3,7 @@ from tasks import societe_scrape_task
 
 
 class SocieteAgent(ScraperAgent):
-    def __init__(self, llm_model, browser, company_id, id_type, cancel_event=None):
+    def __init__(self, llm_model, browser, company_id, id_type="SIREN", cancel_event=None):
         super().__init__(llm_model, browser, cancel_event)
         self.company_id = company_id
         self.id_type = id_type
