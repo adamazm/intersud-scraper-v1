@@ -6,5 +6,5 @@ load_dotenv()
 # Initialize the OpenAI model with the specified parameters
 openai_model = ChatOpenAI(
     model="gpt-4o",
-    max_completion_tokens=500,
+    max_completion_tokens=1000,
 )
