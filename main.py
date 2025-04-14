@@ -112,56 +112,103 @@ except Exception as e:
     add_debug_info(f"API health check failed: {str(e)}")
 
 
-# TODO: Implement this functionality only if id_type is "Name"
-# Search for the correct company
-if (st.button("Search", key="search_button") or 'company_results' in st.session_state) and not 'selected_company' in st.session_state:
-    if not company_id and 'company_results' not in st.session_state:
-        st.error("Please enter a company identification")
+# Handle different company identification types
+if id_type == "Name":
+    # Company name search flow - requires search and selection
+    if 'selected_company' in st.session_state:
+        # Show selected company info
+        selected_company_name = st.session_state['selected_company'].get(
+            'nomcommercial', 'N/A')
+
+        # Add a new search button that will clear the selection
+        if st.button("New Search", key="new_search_button"):
+            # Clear selected company and any results
+            if 'selected_company' in st.session_state:
+                del st.session_state['selected_company']
+            if 'selected_company_name' in st.session_state:
+                del st.session_state['selected_company_name']
+            if 'company_results' in st.session_state:
+                del st.session_state['company_results']
+            if 'result' in st.session_state:
+                del st.session_state['result']
+            st.rerun()
+
     else:
-        # Store search results in session state if not already there
-        if 'company_results' not in st.session_state:
-            # Uncommment to use the API, if not use existing response
-            # company_results = get_companies(company_id)
+        # Original search functionality when no company is selected
+        if (st.button("Search", key="search_button") or 'company_results' in st.session_state) and not 'selected_company' in st.session_state:
+            if not company_id and 'company_results' not in st.session_state:
+                st.error("Please enter a company name")
+            else:
+                # Store search results in session state if not already there
+                if 'company_results' not in st.session_state:
+                    st.session_state['company_results'] = get_companies(
+                        company_id)
 
-            with open("api-responses/societe_api.json", "r", encoding="utf-8") as f:
-                st.session_state['company_results'] = json.load(f)
+                # Now use the stored results from session state
+                company_results = st.session_state['company_results']
 
-        # Now use the stored results from session state
-        company_results = st.session_state['company_results']
+                if company_results:
+                    st.write("### Search Results")
+                    st.write("Click on a company to select it:")
 
-        if company_results:
-            st.write("### Search Results")
-            st.write("Click on a company to select it:")
+                    # Display each company as a distinct expandable section
+                    for idx, company in enumerate(company_results):
+                        # Extract company information
+                        company_name = company.get('nomcommercial', 'N/A')
+                        company_siren = company.get('siren', 'N/A')
+                        company_location = company.get('cpville', 'N/A')
 
-            # Display each company as a distinct expandable section
-            for idx, company in enumerate(company_results):
-                # Extract company information
-                company_name = company.get('nomcommercial', 'N/A')
-                company_siren = company.get('siren', 'N/A')
-                company_location = company.get('cpville', 'N/A')
+                        # Create an expander with the company name as title
+                        with st.expander(f"{company_name}", expanded=True):
+                            # Display company details in left-aligned format
+                            col1, col2 = st.columns([3, 1])
 
-                # Create an expander with the company name as title
-                with st.expander(f"{company_name}", expanded=True):
-                    # Display company details in left-aligned format
-                    col1, col2 = st.columns([3, 1])
+                            with col1:
+                                st.write(f"**SIREN:** {company_siren}")
+                                st.write(f"**Location:** {company_location}")
 
-                    with col1:
-                        st.write(f"**SIREN:** {company_siren}")
-                        st.write(f"**Location:** {company_location}")
+                            with col2:
+                                # Add a select button
+                                if st.button(f"Select", key=f"select_btn_{idx}"):
+                                    st.session_state['selected_company'] = company
+                                    st.session_state['selected_company_name'] = company_name
+                                    # Clear company results to hide the expanders
+                                    st.rerun()
+                else:
+                    st.warning("No results found for the given company name.")
+else:
+    # Direct ID flow (SIREN, SIRET, Other) - skip search step
+    if company_id:
+        # Create a direct company entry if not already selected
+        if 'selected_company' not in st.session_state or (
+            'selected_company' in st.session_state and
+            st.session_state['selected_company'].get('direct_id') != company_id
+        ):
+            # Create a new direct-ID based selection
+            st.session_state['selected_company'] = {
+                'nomcommercial': f"Company with {id_type}: {company_id}",
+                'siren': company_id if id_type == "SIREN" else "",
+                'siret': company_id if id_type == "SIRET" else "",
+                'cpville': "N/A",
+                'direct_id': company_id  # Mark as direct ID entry
+            }
+            st.session_state['selected_company_name'] = f"Company with {id_type}: {company_id}"
 
-                    with col2:
-                        # Add a select button
-                        if st.button(f"Select", key=f"select_btn_{idx}"):
-                            st.session_state['selected_company'] = company
-                            st.session_state['selected_company_name'] = company_name
-                            # Clear company results to hide the expanders
-                            st.rerun()
-        else:
-            st.warning("No results found for the given company identification.")
+        # Add a button to change the ID
+        if st.button("Change ID", key="change_id_button"):
+            if 'selected_company' in st.session_state:
+                del st.session_state['selected_company']
+            if 'selected_company_name' in st.session_state:
+                del st.session_state['selected_company_name']
+            if 'result' in st.session_state:
+                del st.session_state['result']
+            st.rerun()
+    else:
+        st.error(f"Please enter a valid {id_type}")
+
 
 # Show selected company information
 if 'selected_company' in st.session_state:
-
     selected_company_name = st.session_state['selected_company'].get(
         'nomcommercial', 'N/A')
     selected_company_siren = st.session_state['selected_company'].get(
@@ -169,34 +216,43 @@ if 'selected_company' in st.session_state:
     selected_company_location = st.session_state['selected_company'].get(
         'cpville', 'N/A')
 
+    # Display full company details for Name search, simplified for direct ID
     st.write("## Selected Company")
-    st.write(
-        f"**Name:** {selected_company_name}")
-    st.write(
-        f"**SIREN:** {selected_company_siren}")
-    st.write(
-        f"**Location:** {selected_company_location}")
+    st.write(f"**Name:** {selected_company_name}")
+
+    if id_type == "Name":
+        st.write(f"**SIREN:** {selected_company_siren}")
+        st.write(f"**Location:** {selected_company_location}")
+    elif id_type == "SIREN":
+        st.write(f"**SIREN:** {company_id}")
+    elif id_type == "SIRET":
+        st.write(f"**SIRET:** {company_id}")
+    else:
+        st.write(f"**{id_type}:** {company_id}")
+
+    # Determine which ID to use for scraping
+    scrape_id = selected_company_siren if id_type == "Name" else company_id
+    scrape_id_type = "SIREN" if id_type == "Name" else id_type
 
     # Scrape Action
-
     if st.button("Scrape", key="scrape_button", disabled=st.session_state['scraping']):
         start_scraping()
 
-        # Scraping process
+    # Scraping process
     if st.session_state['scraping']:
         # Show cancel button
         st.button("Cancel", key="cancel_button", on_click=cancel_scraping)
 
         # Initialize the API parameters
         url = "http://127.0.0.1:5000"
-        timeout = 60*10  # maximum seconds to wait
+        timeout = 60*20  # maximum seconds to wait
 
         # Spinner and info message
         with st.spinner("Scraping in progress..."):
             add_debug_info(
-                f"Starting scrape for '{selected_company_name}' using SIREN")
+                f"Starting scrape for '{selected_company_name}' using {scrape_id_type}")
             info_container = st.info(
-                f"Searching company info for '{selected_company_name}' using SIREN...")
+                f"Searching company info for '{selected_company_name}' using {scrape_id_type}...")
 
             try:
                 # If we don't have a request ID yet, start a new request
@@ -204,8 +260,8 @@ if 'selected_company' in st.session_state:
                     add_debug_info("Starting new API request")
                     start_response = requests.post(
                         f'{url}/get-company-data',
-                        data={'company_id': selected_company_siren,
-                              'id_type': 'SIREN'},
+                        data={'company_id': scrape_id,
+                              'id_type': scrape_id_type},
                         timeout=5  # Short timeout for initial request
                     )
 
@@ -257,7 +313,7 @@ if 'selected_company' in st.session_state:
                                         f"Cancellation failed: {cancel_json.get('message')}")
                             else:
                                 add_debug_info(
-                                    f"Cancellation request failed with status {cancel_response.status_code}")
+                                    f"Cancellation request failed: {cancel_response.text}")
                         except Exception as e:
                             add_debug_info(
                                 f"Error sending cancellation: {str(e)}")
@@ -293,15 +349,9 @@ if 'selected_company' in st.session_state:
                             else:
                                 # We have a result!
                                 add_debug_info("Received final result")
-                                if "data" in result_json:
-                                    st.session_state['result'] = result_json["data"]
-                                    add_debug_info(
-                                        f"Data: {str(st.session_state['result'])[:200]}...")
-                                else:
-                                    st.session_state['result'] = str(
-                                        result_json)
-                                    add_debug_info(
-                                        f"No data field found, using full result")
+                                st.session_state['result'] = result_json
+                                add_debug_info(
+                                    f"Result keys: {str(result_json.keys())}")
 
                                 # Mark as complete
                                 st.session_state['scraping'] = False
@@ -360,7 +410,7 @@ if 'selected_company' in st.session_state:
                 st.session_state['scraping'] = False
                 st.session_state['result_status'] = "error"
 
-    # Handle displaying result or errors based on status - SINGLE OUTPUT SECTION
+    # Handle displaying result or errors based on status - RESULT DISPLAY SECTION
     with result_container:
         # Show API errors
         if st.session_state.get('api_error'):
@@ -381,18 +431,66 @@ if 'selected_company' in st.session_state:
             else:
                 st.info("Previously scraped data")
 
-            # Display the results in an expander
-            with st.expander("Scraped Data", expanded=True):
-                st.text_area(
-                    "Company Information",
-                    value=st.session_state['result'],
-                    height=400,
-                    key="result_text_area"
-                )
+            # Display the results in tabs for better organization
+            tab1, tab2 = st.tabs(["Web Data", "Ellisphere Data"])
 
-            # Show button to start new search
-            # if not st.session_state['scraping']:
-            #     st.button("Start New Search", on_click=start_new_search)
+            # Parse the result
+            result_data = st.session_state['result']
+
+            with tab1:
+                # Display web scraped data
+                st.subheader("Web Scraped Data")
+                if isinstance(result_data, dict) and "web_data" in result_data:
+                    st.text_area(
+                        "Web Sources (Pappers, Infogreffe, Societe.com)",
+                        value=result_data["web_data"],
+                        height=400,
+                        key="web_result_text"
+                    )
+                else:
+                    # Fallback if not in expected format
+                    st.text_area(
+                        "Web Sources (All Data)",
+                        value=str(result_data),
+                        height=400,
+                        key="fallback_result_text"
+                    )
+                    st.info("Data format doesn't contain separate web data section")
+
+            with tab2:
+                # Display Ellisphere data
+                st.subheader("Ellisphere Financial Data")
+                if isinstance(result_data, dict) and "ellisphere_data" in result_data:
+                    st.text_area(
+                        "Ellisphere API Data",
+                        value=result_data["ellisphere_data"],
+                        height=400,
+                        key="ellisphere_result_text"
+                    )
+                else:
+                    st.info("No specific Ellisphere data available")
+
+            # Show buttons for navigation
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Back to Search Results"):
+                    if 'selected_company' in st.session_state:
+                        del st.session_state['selected_company']
+                    if 'selected_company_name' in st.session_state:
+                        del st.session_state['selected_company_name']
+                    st.rerun()
+
+            with col2:
+                if st.button("Clear All & Start New"):
+                    if 'selected_company' in st.session_state:
+                        del st.session_state['selected_company']
+                    if 'selected_company_name' in st.session_state:
+                        del st.session_state['selected_company_name']
+                    if 'company_results' in st.session_state:
+                        del st.session_state['company_results']
+                    if 'result' in st.session_state:
+                        del st.session_state['result']
+                    st.rerun()
 
     # Display debug info in sidebar
     with st.sidebar.expander("Debug Log", expanded=True):
@@ -428,25 +526,3 @@ if 'selected_company' in st.session_state:
                         f"Error retrieving active requests: {active_response.status_code}")
             except Exception as e:
                 st.write(f"Error: {str(e)}")
-
-    # Add buttons for actions
-    # col1, col2 = st.columns(2)
-    # with col1:
-    #     if st.button("Back to Search Results"):
-    #         # Keep the company_results but remove selected_company
-    #         if 'selected_company' in st.session_state:
-    #             del st.session_state['selected_company']
-    #         if 'selected_company_name' in st.session_state:
-    #             del st.session_state['selected_company_name']
-    #         st.rerun()
-
-    # with col2:
-    #     if st.button("Clear All & Start New"):
-    #         # Clear all search-related state
-    #         if 'selected_company' in st.session_state:
-    #             del st.session_state['selected_company']
-    #         if 'selected_company_name' in st.session_state:
-    #             del st.session_state['selected_company_name']
-    #         if 'company_results' in st.session_state:
-    #             del st.session_state['company_results']
-    #         st.rerun()

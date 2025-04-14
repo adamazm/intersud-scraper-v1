@@ -1,13 +1,13 @@
 from flask import Flask, request, jsonify
 import asyncio
-from ai_agents import PappersAgent, InfogreffeAgent, SocieteAgent, TranslatorAgent, GoogleAgent
+from ai_agents import PappersAgent, InfogreffeAgent, SocieteAgent, WebCompilerAgent, GoogleAgent, EllisphereAgent, EllisphereCompilerAgent
 from config import openai_model, browser_config
+from utils import get_years_from_ellisphere, get_year_data, get_detailed_report_data
 from browser_use import Browser
 import time
 import uuid
 import threading
 import concurrent.futures
-import functools
 
 app = Flask(__name__)
 
@@ -33,37 +33,58 @@ def create_agents(llm_model, browser, company_id, id_type, cancel_event=None):
     ]
 
 
+async def ellisphere_get_data(company_id, agent, results):
+
+    xml_content = get_year_data(company_id)
+
+    available_reports = get_years_from_ellisphere(xml_content)
+    # Do API call for every year present
+    for year in available_reports:
+
+        xml_result = get_detailed_report_data(company_id, year)
+
+        compiled_xml = await agent.run(xml_result)
+        results.append(compiled_xml)
+
+
 async def scrape_and_compile(llm_model, browser, company_id: str, id_type: str, request_id: str, cancel_event=None):
     """
     Scrape data from different sources and compile the results.
-    Checks for cancellation during execution.
+    Returns separate results for web scraping and Ellisphere API.
     """
     # Create agents for scraping with the cancellation event
     agents = create_agents(
         llm_model, browser, company_id, id_type, cancel_event)
 
-    # Create a compiler agent to compile results
-    translator_agent = TranslatorAgent()
+    ellisphere_agent = EllisphereAgent(cancel_event)
 
-    results = []
+    # Create a compiler agent to compile results
+    web_compiler_agent = WebCompilerAgent()
+    ellisphere_compiler_agent = EllisphereCompilerAgent()
+
+    # Store web scraping results separately
+    web_results = []
+    ellisphere_results = []
+
+    # Process web scraping agents
     for agent in agents:
         # Check cancellation event
         if cancel_event and cancel_event.is_set():
             print(
                 f"Request {request_id} was cancelled via event - stopping scraping")
-            return "Scraping was cancelled by user"
+            return {"web_data": "Scraping was cancelled by user", "ellisphere_data": "Scraping was cancelled by user"}
 
         # Also check the old cancellation mechanism for backward compatibility
         if request_id in active_requests and active_requests[request_id]['cancelled']:
             print(
                 f"Request {request_id} was cancelled via flag - stopping scraping")
-            return "Scraping was cancelled by user"
+            return {"web_data": "Scraping was cancelled by user", "ellisphere_data": "Scraping was cancelled by user"}
 
         try:
             # Run each agent and collect the results
             result = await agent.run()
-            if result is not None:  # Add this check
-                results.append(result)
+            if result is not None:
+                web_results.append(result)
             else:
                 print(
                     f"Warning: Agent {agent.__class__.__name__} returned None")
@@ -74,32 +95,69 @@ async def scrape_and_compile(llm_model, browser, company_id: str, id_type: str, 
     if cancel_event and cancel_event.is_set():
         print(
             f"Request {request_id} was cancelled via event - stopping compilation")
-        return "Scraping was cancelled by user"
+        return {"web_data": "Scraping was cancelled by user", "ellisphere_data": "Scraping was cancelled by user"}
 
     if request_id in active_requests and active_requests[request_id]['cancelled']:
         print(
             f"Request {request_id} was cancelled via flag - stopping compilation")
-        return "Scraping was cancelled by user"
+        return {"web_data": "Scraping was cancelled by user", "ellisphere_data": "Scraping was cancelled by user"}
 
-    # Make sure we have at least one result
-    if not results:
-        return "No results found from any of the scraping agents."
-
+    # Process Ellisphere data separately
     try:
-        compiled_result = await translator_agent.run(results[0])
-        # Fix encoding issues
-        if isinstance(compiled_result, str):
-            # Try to fix common encoding issues
-            try:
-                # First approach: If the text was accidentally double-encoded
-                compiled_result = compiled_result.encode(
-                    'latin1').decode('utf-8')
-            except (UnicodeError, UnicodeDecodeError):
-                pass  # Keep original if approaches fail
-
-        return compiled_result or "No data could be compiled."
+        # Call the ellisphere agent to get data
+        await ellisphere_get_data(company_id, ellisphere_agent, ellisphere_results)
     except Exception as e:
-        return f"Error compiling results: {str(e)}"
+        print(f"Error in ellisphere agent: {str(e)}")
+
+    # Compile results separately
+    web_compiled_result = None
+    ellisphere_compiled_result = None
+
+    # Compile web scraped data if available
+    if web_results:
+        try:
+            print(f"Web results before compilation: {web_results}")
+            web_compiled_result = await web_compiler_agent.run(web_results[0])
+            # Fix encoding issues
+            if isinstance(web_compiled_result, str):
+                try:
+                    web_compiled_result = web_compiled_result.encode(
+                        'latin1').decode('utf-8')
+                except (UnicodeError, UnicodeDecodeError):
+                    pass
+        except Exception as e:
+            print(f"Error compiling web results: {str(e)}")
+            web_compiled_result = f"Error compiling web results: {str(e)}"
+    else:
+        web_compiled_result = "No results found from web scraping agents."
+
+    # Use Ellisphere data directly without translator if available
+    if ellisphere_results:
+        try:
+            print(
+                f"Ellisphere results available: {len(ellisphere_results)} items")
+            # Combine all Ellisphere results
+            ellisphere_compiled_result = "\n\n".join(ellisphere_results)
+            # print(ellisphere_compiled_result)
+            # ellisphere_compiled_result = await ellisphere_compiler_agent.run(
+            #     ellisphere_compiled_result)
+            if isinstance(ellisphere_compiled_result, str):
+                try:
+                    ellisphere_compiled_result = ellisphere_compiled_result.encode(
+                        'latin1').decode('utf-8')
+                except (UnicodeError, UnicodeDecodeError):
+                    pass
+        except Exception as e:
+            print(f"Error processing ellisphere results: {str(e)}")
+            ellisphere_compiled_result = f"Error processing ellisphere results: {str(e)}"
+    else:
+        ellisphere_compiled_result = "No results found from Ellisphere API."
+
+    # Return both sets of results
+    return {
+        "web_data": web_compiled_result or "No web data could be compiled.",
+        "ellisphere_data": ellisphere_compiled_result or "No Ellisphere data could be compiled."
+    }
 
 
 # Wrapper function to run in thread
@@ -144,54 +202,48 @@ def run_scraper_task(llm_model, browser_config, company_id, id_type, request_id,
 @app.route('/get-company-data', methods=['POST'])
 def get_company_data():
     """
-    Endpoint to get company data based on company_id and id_type.
+    Start a new scraping request for a company.
+    Returns a request ID that can be used to check the status and get results.
     """
-    # Get the company_id and id_type from the request
+    # Get parameters from request
     company_id = request.form.get('company_id')
-    id_type = request.form.get('id_type')
+    id_type = request.form.get('id_type', 'SIREN')
 
-    if not company_id or not id_type:
-        return jsonify({"error": "Missing company_id or id_type"}), 400
+    if not company_id:
+        return jsonify({"error": "Missing company_id parameter"}), 400
 
-    # Generate a unique ID for this request
+    # Generate a unique request ID
     request_id = str(uuid.uuid4())
 
-    try:
-        # Create a cancellation event
-        cancel_event = threading.Event()
+    # Create a cancellation event for this task
+    cancel_event = threading.Event()
 
-        # Create a future for the scraping task
-        future = executor.submit(
-            run_scraper_task,
-            llm_model,
-            browser_config,
-            company_id,
-            id_type,
-            request_id,
-            cancel_event
-        )
+    # Submit the task to the thread pool
+    future = executor.submit(
+        run_scraper_task,
+        llm_model,
+        browser_config,
+        company_id,
+        id_type,
+        request_id,
+        cancel_event
+    )
 
-        # Register the request with its future and cancellation event
-        active_requests[request_id] = {
-            'cancelled': False,
-            'start_time': time.time(),
-            'company_id': company_id,
-            'id_type': id_type,
-            'future': future,
-            'cancel_event': cancel_event
-        }
+    # Store request details and future
+    active_requests[request_id] = {
+        'future': future,
+        'start_time': time.time(),
+        'company_id': company_id,
+        'id_type': id_type,
+        'cancelled': False,
+        'cancel_event': cancel_event
+    }
 
-        # Create a response immediately with the request ID
-        response = jsonify({
-            "message": "Scraping task started",
-            "request_id": request_id,
-            "status": "processing"
-        })
-        response.headers['X-Request-ID'] = request_id
-        return response
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # Return the request ID to the client
+    return jsonify({
+        "message": "Scraping started",
+        "request_id": request_id
+    })
 
 
 @app.route('/get-result/<request_id>', methods=['GET'])

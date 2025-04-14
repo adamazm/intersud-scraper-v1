@@ -31,10 +31,3 @@ def get_companies(company_name, nbrep=5):
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data: {e}")
         return None
-
-
-# Test the function with a sample company name
-company_name = "Air Liquide International"  # Example company name
-result = get_companies(company_name)
-print(f"Response for {company_name}:")
-print(result)

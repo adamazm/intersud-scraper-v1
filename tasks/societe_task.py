@@ -110,7 +110,7 @@ def societe_scrape_task(company_id: str, id_type):
 
     8. **Locate the search bar for the first time and find it and click it again.** Ensure that the search bar is active before entering the director's name, then press Enter.
 
-    9. Scroll to the **top of the results page** and examine the search results. Identify the correct profile by matching the company's {id_type}: {company_id}.
+    9. Scroll to the **top of the results page** and examine the search results. Identify the correct profile by matching the company's name.
 
     10. Once you find the correct director, extract and organize all available information about the director, for example:
 
