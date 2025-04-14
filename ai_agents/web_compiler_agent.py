@@ -1,20 +1,24 @@
-from agents import Agent, Runner
+from agents import Agent, Runner, ModelSettings
 from dotenv import load_dotenv
-from config import result_instruction
+from config import web_result_instruction
 
 load_dotenv()
 
 
-class TranslatorAgent:
+class WebCompilerAgent:
     def __init__(self):
         """
         Initialize the CompilerAgent with OpenAI's Agent and instructions.
         """
 
         self.agent = Agent(
-            name="Translator Agent",
-            instructions=result_instruction,
+            name="Translator And Compiler Agent",
+            instructions=web_result_instruction,
             model="gpt-4o",
+            model_settings=ModelSettings(
+                max_tokens=30000,
+                truncation="disabled",
+            )
         )
 
     async def run(self, to_translate):
