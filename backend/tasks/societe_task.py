@@ -1,0 +1,160 @@
+def societe_scrape_task(company_id, id_type):
+    return f"""Follow these steps:
+    
+    CRITICAL INSTRUCTIONS:
+    - You MUST complete ALL steps below and extract the actual company data
+    - You MUST return the final result as valid JSON format only
+    - DO NOT stop at intermediate steps or return status messages
+    - The final output should be the extracted company data in the JSON format specified in step 5
+    
+    Go to https://www.societe.com/
+
+    1.  Accept cookies if prompted.
+
+    2. **Locate the search bar for the first time and click it.** Ensure that the search bar is active and ready for input before proceeding. Only after confirming the search bar is active, enter the company's identifications: {company_id}, which is the company's {id_type}, and press Enter.
+
+    3. Wait for the search results to load to ensure all results are correctly loaded.
+
+    4. Click on the first relevant result to access the company's profile.
+
+    5. Scroll to the top of the screen first then extract and organize all available information about the company and return the data in JSON format:
+    
+    {{
+        "source": "societe.com",
+        "company_id": "{company_id}",
+        "id_type": "{id_type}",
+        "identite": {{
+            "siren": "...",
+            "date_creation": "...",
+            "forme_juridique": "...",
+            "statut": "...",
+            "adresse": "...",
+            "dirigeants": "...",
+            "code_naf_ape": "...",
+            "source_information": "..."
+        }},
+        "recapitulatif": {{
+            "derniere_modification": "...",
+            "procedures_collective": "...",
+            "solvabilite": "...",
+            "publications_comptes": "...",
+            "score_extra_financier": "...",
+            "score_carbone": "...",
+            "taille_entreprise": "...",
+            "effectif": "..."
+        }},
+        "presentation": "...",
+        "legal": {{
+            "identite_entreprise": {{
+                "date_creation": "...",
+                "forme_juridique": "...",
+                "noms_commerciaux": "...",
+                "adresse_postale": "...",
+                "telephone": "..."
+            }},
+            "numeros_identification": {{
+                "numero_siren": "...",
+                "numero_siret_siege": "...",
+                "numero_tva_intracommunautaire": "...",
+                "numero_rcs": "..."
+            }},
+            "informations_commerciales": {{
+                "activite_code_naf_ape": "...",
+                "activite_principale_declaree": "...",
+                "convention_collective_deduite": "..."
+            }},
+            "taille_entreprise": {{
+                "capital_social": "...",
+                "effectif": "...",
+                "chiffre_affaires": "..."
+            }},
+            "informations_juridiques": {{
+                "statut_rcs": "...",
+                "statut_insee": "...",
+                "statut_rne": "..."
+            }},
+            "juridictions": {{
+                "greffe_paris": "...",
+                "numero_dossier": "...",
+                "code_greffe": "..."
+            }}
+        }},
+        "entreprises_liees": {{
+            "nombre_societes_liees": "...",
+            "entreprises_mentionnees": [
+                {{
+                    "nom_entreprise_personne": "...",
+                    "siren": "...",
+                    "siret": "..."
+                }}
+            ]
+        }},
+        "dirigeants": [
+            {{
+                "statut": "...",
+                "depuis_le": "...",
+                "nom_complet": "...",
+                "fonction": "..."
+            }}
+        ],
+        "etablissements": [
+            {{
+                "statut": "...",
+                "depuis_le": "...",
+                "nom": "...",
+                "type": "...",
+                "siret": "...",
+                "activite": "...",
+                "adresse": "..."
+            }}
+        ],
+        "director_profile": {{
+            "identite": {{
+                "nom_complet": "...",
+                "date_naissance": "...",
+                "entreprises": "...",
+                "activite": "...",
+                "commanditaire": "..."
+            }},
+            "entreprises": [
+                {{
+                    "statut": "...",
+                    "depuis_le": "...",
+                    "nom_entreprise": "...",
+                    "fonction": "...",
+                    "siren": "...",
+                    "siret": "...",
+                    "adresse": "...",
+                    "secteur_activite": "..."
+                }}
+            ]
+        }}
+    }}
+
+    6. Skip sections with images, ads or non-textual content.
+
+    If the director name is found, perform the following additional steps:
+
+    7. Go back to societe.com homepage (https://www.societe.com/) and accept cookies if prompted.
+
+    8. **Locate the search bar for the first time and find it and click it again.** Ensure that the search bar is active before entering the director's name, then press Enter.
+
+    9. Scroll to the **top of the results page** and examine the search results. Identify the correct profile by matching the company's name.
+
+    10. Once you find the correct director, extract and organize all available information about the director and include it in the director_profile section of the JSON above.
+
+    Important Notes:
+    - Always scroll to the top before performing searches or analyzing results.
+    - If the section contains an expander, ensure to expand it before extracting data.
+    - Use null for missing values, empty arrays [] for missing lists.
+    - If information for a section is unavailable or unparseable, set the value to null or empty array as appropriate.
+    - If the director name is not provided, set director_profile to null.
+    - If multiple items exist in arrays (dirigeants, etablissements), include all items.
+    - Return ONLY valid JSON format - no additional text or formatting.
+    - Ensure all JSON keys use snake_case format.
+    - DO NOT include any explanatory text, headers, or markdown formatting.
+    - DO NOT mention the source in text format - it's already in the JSON.
+    - Your response should start with {{ and end with }}.
+    
+    REMEMBER: The output must be parseable JSON that starts with {{ and ends with }}. No other text should be included!
+    """

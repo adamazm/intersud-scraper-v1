@@ -1,6 +1,6 @@
 # Intersud AI Scraper
 
-This project is an AI-powered web scraper designed to gather company information from multiple sources using AI agents. The scraper extracts data from websites such as Societe.com, Infogreffe.fr, and Pappers.fr.
+This project is an AI-powered web scraper designed to gather company information from multiple sources using AI agents. The scraper extracts data from websites such as Societe.com, Infogreffe.fr, and Pappers.fr and Ellisphere.
 
 ## Installation
 
@@ -27,7 +27,8 @@ This project is an AI-powered web scraper designed to gather company information
 To start the API locally, run:
 
 ```sh
-python api.py
+cd backend
+python app.py
 ```
 
 This will launch the API, which can be accessed locally.
@@ -37,10 +38,11 @@ This will launch the API, which can be accessed locally.
 To launch the Streamlit interface for visualization and interaction, run:
 
 ```sh
-streamlit run main.py
+cd frontend
+streamlit run app.py
 ```
 
 ## About
 
 The scrapers operate using `browser-use` along with Playwright to extract data efficiently.
-The prompts for the agents are located in the `tasks/` folder if modifications are needed.
+The prompts for the agents are located in the `backend/tasks/` folder if modifications are needed.

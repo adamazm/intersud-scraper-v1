@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+streamlit
+python-dotenv
+requests
+browser-use
+openai-agents
