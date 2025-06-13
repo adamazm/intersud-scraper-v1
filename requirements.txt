@@ -1,5 +1,0 @@
-browser-use
-streamlit
-playwright
-openai-agents
-python-dotenv
