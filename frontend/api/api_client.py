@@ -1,9 +1,19 @@
 import requests
 import time
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+ENV = os.getenv("ENV", "production")  # or "development"
+if ENV == "development":
+    BACKEND_URL = "http://localhost:8000"
+else:
+    BACKEND_URL = "/api"
 
 
 class ApiClient:
-    def __init__(self, base_url="http://localhost:8000"):
+    def __init__(self, base_url=BACKEND_URL):
         self.base_url = base_url
 
     def get_societe_api_results(self, company_name: str):
