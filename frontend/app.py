@@ -261,7 +261,6 @@ def main():
     st.set_page_config(
         page_title="Intersud AI Scraper",
         page_icon="🤖",
-        layout="wide"
     )
 
     # Initialize the API client
