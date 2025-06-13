@@ -8,7 +8,7 @@ class ScrapingAgent:
 
     async def scrape(self, company_id, id_type):
         browser_session = BrowserSession(
-            headless=True,
+            headless=False,
             chromium_sandbox=False,
         )
 
