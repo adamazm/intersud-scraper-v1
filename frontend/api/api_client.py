@@ -9,7 +9,7 @@ ENV = os.getenv("ENV", "production")  # or "development"
 if ENV == "development":
     BACKEND_URL = "http://localhost:8000"
 else:
-    BACKEND_URL = "/api"
+    BACKEND_URL = "https://intersud.liwa.io/api"
 
 
 class ApiClient:
