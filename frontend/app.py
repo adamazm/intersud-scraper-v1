@@ -257,6 +257,12 @@ def main():
     """
     Main function to run the Streamlit app.
     """
+    # Set page config including the browser tab title
+    st.set_page_config(
+        page_title="Intersud AI Scraper",
+        page_icon="🤖",
+        layout="wide"
+    )
 
     # Initialize the API client
     global api_client
@@ -266,7 +272,7 @@ def main():
     init_session_state()
 
     # Main UI
-    st.title("Intersud AI")
+    st.title("Intersud AI Scraper")
 
     # Create main tabs - add Compiled Report tab
     search_tab, results_tab, compiled_report_tab = st.tabs(
