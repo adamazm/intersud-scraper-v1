@@ -14,6 +14,13 @@ def pappers_scrape_task(company_id: str, id_type):
     - You MUST return the final result as valid JSON format only
     - DO NOT stop at intermediate steps or return status messages
     - The final output should be the extracted company data in the JSON format specified in step 12
+    - If you encounter a CAPTCHA at any point, immediately return the following JSON:
+        {{
+            "error": "blocked_by_captcha",
+            "message": "Access blocked by CAPTCHA verification",
+            "company_id": "{company_id}",
+            "id_type": "{id_type}"
+        }}
 
     IMPORTANT:
     - Simulate human behavior when navigating through the website:
@@ -162,6 +169,7 @@ def pappers_scrape_task(company_id: str, id_type):
         - DO NOT include any explanatory text, headers, or markdown formatting.
         - DO NOT mention the source in text format - it's already in the JSON.
         - Your response should start with {{ and end with }}.
+        - If you encounter a CAPTCHA at any point, immediately return the CAPTCHA error JSON format specified above.
         
     REMEMBER: The output must be parseable JSON that starts with {{ and ends with }}. No other text should be included!
     """
