@@ -4,6 +4,56 @@ from constants import *
 import json
 
 
+def safe_currency_format(value, default=0):
+    """
+    Safely format a value as currency, handling None and non-numeric values.
+    
+    Args:
+        value: The value to format (could be None, int, float, or string)
+        default: Default value to use if value is None or invalid
+    
+    Returns:
+        str: Formatted currency string
+    """
+    if value is None:
+        value = default
+    
+    try:
+        # Convert to float if it's a string
+        if isinstance(value, str):
+            value = float(value)
+        
+        # Format as currency
+        if value == 0:
+            return "€0"
+        else:
+            return f"€{value:,.0f}"
+    except (ValueError, TypeError):
+        return f"€{default:,.0f}" if default != 0 else "€0"
+
+
+def safe_number_format(value, default=0):
+    """
+    Safely format a number, handling None and non-numeric values.
+    
+    Args:
+        value: The value to format (could be None, int, float, or string)
+        default: Default value to use if value is None or invalid
+    
+    Returns:
+        float: The numeric value or default
+    """
+    if value is None:
+        return default
+    
+    try:
+        if isinstance(value, str):
+            return float(value)
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
+
 def init_session_state():
     if "selected_company" not in st.session_state:
         st.session_state.selected_company = None
@@ -133,9 +183,9 @@ def select_company(company_id, id_type: str):
 
 def render_ellisphere_results(ellisphere_data):
     """
-    Render ellisphere results with expandable containers for each report.
+    Render ellisphere results with a financial dashboard style for JSON data.
     """
-    st.subheader("Données Ellisphere")
+    st.subheader("📊 Données Financières Ellisphere")
 
     if not ellisphere_data:
         st.warning("Aucune donnée retournée par le scraper Ellisphere")
@@ -148,16 +198,194 @@ def render_ellisphere_results(ellisphere_data):
 
         st.write(f"**Trouvé {len(ellisphere_data)} rapports:**")
 
-        for i, report in enumerate(ellisphere_data):
-            # Create expandable container for each report
-            with st.expander(f"Rapport {i + 1}", expanded=False):
-                if report:
-                    st.write("**Contenu du rapport:**")
-                    st.text(report)
+        for item in ellisphere_data:
+            if isinstance(item, dict) and 'year' in item and 'result' in item:
+                year = item['year']
+                result = item['result']
+                
+                if result.get('status') == 'success' and result.get('format') == 'json':
+                    # Financial Dashboard Style for JSON data
+                    data = result['data']
+                    if 'company_financial_report' in data:
+                        report = data['company_financial_report']
+                        
+                        # Main header for the year
+                        st.header(f"📈 Rapport Financier - {report.get('report_year', year)}")
+                        
+                        # Basic info in columns
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Année", report.get('report_year', year))
+                        with col2:
+                            st.metric("Devise", report.get('currency', 'N/A'))
+                        with col3:
+                            st.metric("Confidentialité", report.get('privacy', 'N/A'))
+                        
+                        # Process periods
+                        periods = report.get('periods', [])
+                        if len(periods) >= 2:
+                            current = periods[0]
+                            previous = periods[1]
+                            
+                            st.subheader("📊 Comparaison Annuelle")
+                            
+                            # Key metrics comparison in 4 columns
+                            col1, col2, col3, col4 = st.columns(4)
+                            
+                            # Revenue comparison
+                            with col1:
+                                current_revenue = safe_number_format(current.get('income_statement', {}).get('net_revenue', 0))
+                                previous_revenue = safe_number_format(previous.get('income_statement', {}).get('net_revenue', 0))
+                                revenue_change = current_revenue - previous_revenue
+                                st.metric(
+                                    "Chiffre d'Affaires", 
+                                    f"{safe_currency_format(current_revenue)}", 
+                                    f"{safe_currency_format(revenue_change)}" if revenue_change != 0 else None
+                                )
+                            
+                            # Assets comparison
+                            with col2:
+                                current_assets = safe_number_format(current.get('balance_sheet_assets', {}).get('total_assets', 0))
+                                previous_assets = safe_number_format(previous.get('balance_sheet_assets', {}).get('total_assets', 0))
+                                assets_change = current_assets - previous_assets
+                                st.metric(
+                                    "Total Actif", 
+                                    f"{safe_currency_format(current_assets)}", 
+                                    f"{safe_currency_format(assets_change)}" if assets_change != 0 else None
+                                )
+                            
+                            # Equity comparison
+                            with col3:
+                                current_equity = safe_number_format(current.get('balance_sheet_liabilities', {}).get('total_equity', 0))
+                                previous_equity = safe_number_format(previous.get('balance_sheet_liabilities', {}).get('total_equity', 0))
+                                equity_change = current_equity - previous_equity
+                                st.metric(
+                                    "Capitaux Propres", 
+                                    f"{safe_currency_format(current_equity)}", 
+                                    f"{safe_currency_format(equity_change)}" if equity_change != 0 else None
+                                )
+                            
+                            # Net income comparison
+                            with col4:
+                                current_income = safe_number_format(current.get('income_statement', {}).get('net_income', 0))
+                                previous_income = safe_number_format(previous.get('income_statement', {}).get('net_income', 0))
+                                income_change = current_income - previous_income
+                                st.metric(
+                                    "Résultat Net", 
+                                    f"{safe_currency_format(current_income)}", 
+                                    f"{safe_currency_format(income_change)}" if income_change != 0 else None
+                                )
+                            
+                            # Detailed breakdown for each period
+                            for i, period in enumerate(periods):
+                                period_num = period.get('period_number', i+1)
+                                end_date = period.get('end_date', 'N/A')
+                                
+                                with st.expander(f"📋 Détails Période {period_num} - {end_date}", expanded=i==0):
+                                    
+                                    # Balance Sheet Assets
+                                    st.subheader("💰 Actif du Bilan")
+                                    assets = period.get('balance_sheet_assets', {})
+                                    
+                                    asset_col1, asset_col2 = st.columns(2)
+                                    with asset_col1:
+                                        st.write(f"**Total Actif:** {safe_currency_format(assets.get('total_assets', 0))}")
+                                        st.write(f"**Actif Immobilisé:** {safe_currency_format(assets.get('total_fixed_assets', 0))}")
+                                        st.write(f"**Actif Circulant:** {safe_currency_format(assets.get('total_current_assets', 0))}")
+                                    with asset_col2:
+                                        st.write(f"**Trésorerie:** {safe_currency_format(assets.get('cash_and_equivalents', 0))}")
+                                        st.write(f"**Créances Clients:** {safe_currency_format(assets.get('accounts_receivable', 0))}")
+                                        st.write(f"**Autres Participations:** {safe_currency_format(assets.get('other_investments', 0))}")
+                                    
+                                    # Balance Sheet Liabilities
+                                    st.subheader("🏛️ Passif du Bilan")
+                                    liabilities = period.get('balance_sheet_liabilities', {})
+                                    
+                                    liab_col1, liab_col2 = st.columns(2)
+                                    with liab_col1:
+                                        st.write(f"**Capital Social:** {safe_currency_format(liabilities.get('share_capital', 0))}")
+                                        st.write(f"**Capitaux Propres:** {safe_currency_format(liabilities.get('total_equity', 0))}")
+                                    with liab_col2:
+                                        st.write(f"**Total Dettes:** {safe_currency_format(liabilities.get('total_debt', 0))}")
+                                        st.write(f"**Total Passif:** {safe_currency_format(liabilities.get('total_liabilities', 0))}")
+                                    
+                                    # Income Statement
+                                    st.subheader("📈 Compte de Résultat")
+                                    income = period.get('income_statement', {})
+                                    
+                                    income_col1, income_col2 = st.columns(2)
+                                    with income_col1:
+                                        st.write(f"**Chiffre d'Affaires:** {safe_currency_format(income.get('net_revenue', 0))}")
+                                        st.write(f"**Produits d'Exploitation:** {safe_currency_format(income.get('total_operating_income', 0))}")
+                                        st.write(f"**Charges d'Exploitation:** {safe_currency_format(income.get('total_operating_expenses', 0))}")
+                                        st.write(f"**Résultat d'Exploitation:** {safe_currency_format(income.get('operating_result', 0))}")
+                                    with income_col2:
+                                        st.write(f"**Produits Financiers:** {safe_currency_format(income.get('total_financial_income', 0))}")
+                                        st.write(f"**Résultat Financier:** {safe_currency_format(income.get('financial_result', 0))}")
+                                        st.write(f"**Résultat Net:** {safe_currency_format(income.get('net_income', 0))}")
+                                    
+                                    st.divider()
+                        
+                        elif len(periods) == 1:
+                            # Single period data
+                            period = periods[0]
+                            st.subheader(f"📋 Données Financières - {period.get('end_date', 'N/A')}")
+                            
+                            # Display the single period in the same detailed format
+                            assets = period.get('balance_sheet_assets', {})
+                            liabilities = period.get('balance_sheet_liabilities', {})
+                            income = period.get('income_statement', {})
+                            
+                            # Key metrics in columns
+                            col1, col2, col3, col4 = st.columns(4)
+                            with col1:
+                                st.metric("Chiffre d'Affaires", f"{safe_currency_format(income.get('net_revenue', 0))}")
+                            with col2:
+                                st.metric("Total Actif", f"{safe_currency_format(assets.get('total_assets', 0))}")
+                            with col3:
+                                st.metric("Capitaux Propres", f"{safe_currency_format(liabilities.get('total_equity', 0))}")
+                            with col4:
+                                st.metric("Résultat Net", f"{safe_currency_format(income.get('net_income', 0))}")
+                        
+                        # Raw JSON view (collapsible)
+                        with st.expander("🔍 Données JSON Brutes", expanded=False):
+                            st.json(data)
+                    else:
+                        st.error("Format de données JSON invalide")
+                    st.json(result['data'])
+                
+                elif result.get('status') == 'json_parse_failed':
+                    # Fallback for failed JSON parsing
+                    st.warning(f"⚠️ Échec de l'analyse JSON pour l'année {year}")
+                    st.error(f"Erreur: {result.get('error', 'Erreur inconnue')}")
+                    
+                    with st.expander(f"📄 Données Brutes - Année {year}", expanded=False):
+                        st.text(result.get('data', 'Aucune donnée disponible'))
+                
                 else:
-                    st.warning(f"Rapport {i + 1} est vide")
+                    # Handle other formats or errors
+                    with st.expander(f"📄 Rapport {year}", expanded=False):
+                        if result.get('data'):
+                            if result.get('format') == 'french_text':
+                                st.write("**Rapport en français:**")
+                                st.text(result['data'])
+                            else:
+                                st.write("**Contenu du rapport:**")
+                                st.text(result['data'])
+                        else:
+                            st.warning(f"Rapport {year} est vide ou contient une erreur")
+                            if result.get('error'):
+                                st.error(f"Erreur: {result['error']}")
+            else:
+                # Fallback for old format
+                with st.expander(f"Rapport {len(ellisphere_data)}", expanded=False):
+                    if item:
+                        st.write("**Contenu du rapport:**")
+                        st.text(item)
+                    else:
+                        st.warning("Rapport vide")
     else:
-        # Single report
+        # Handle single report (old format)
         st.write("**Rapport unique:**")
         st.text(ellisphere_data)
 

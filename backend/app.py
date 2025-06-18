@@ -10,7 +10,7 @@ from collections import defaultdict
 from enum import Enum
 from scraper_agents import ScrapingAgent, EllisphereAgent, OpenAICompiler
 from tasks import infogreffe_task, pappers_scrape_task, societe_scrape_task, google_task
-from helpers import get_year_data, get_years_from_ellisphere, get_detailed_report_data, get_companies_from_societe_api
+from helpers import get_year_data, get_years_from_ellisphere, get_detailed_report_data, get_companies_from_societe_api, parse_periods_from_file, get_available_years_from_file
 
 load_dotenv()
 
@@ -120,17 +120,23 @@ def process_scraper(task_id, company_id, id_type):
             update_task_status(
                 task_id, TaskStatus.RUNNING.value, progress=current_progress)
 
-            # Handle different scraper types
-            if scraper_config["name"] == "ellisphere":
-                # Ellisphere uses async functions, so use run_async helper
-                result = run_async(scraper_config["task_function"](company_id))
-            else:
-                # Standard scrapers use ScrapingAgent
-                agent = ScrapingAgent(
-                    scraper_config["task_function"](company_id, id_type))
-                result = run_async(agent.scrape(company_id, id_type))
+            # Handle different scraper types with individual error handling
+            try:
+                if scraper_config["name"] == "ellisphere":
+                    # Ellisphere uses async functions, so use run_async helper
+                    result = run_async(scraper_config["task_function"](company_id))
+                else:
+                    # Standard scrapers use ScrapingAgent
+                    agent = ScrapingAgent(
+                        scraper_config["task_function"](company_id, id_type))
+                    result = run_async(agent.scrape(company_id, id_type))
 
-            results[scraper_config["name"]] = result
+                results[scraper_config["name"]] = result
+            except Exception as e:
+                # Log the error but continue with other scrapers
+                error_msg = f"Error in {scraper_config['display_name']} scraper: {str(e)}"
+                print(f"Warning: {error_msg}")
+                results[scraper_config["name"]] = {"error": error_msg, "status": "failed"}
 
             # Update progress after completing this scraper
             completed_progress = int((i + 1) * progress_per_independent)
@@ -209,27 +215,34 @@ def get_dependency_input(results, dependency_list):
 
 async def compile_results(results):
     """
-    Compile results from multiple scrapers into a human-readable document
+    Compile results from multiple scrapers into a human-readable document.
+    Excludes ellisphere data and only processes: infogreffe, pappers, societe, google.
     """
     try:
-        # Prepare compilation input with JSON results
+        # List of scrapers to include in compilation (excluding ellisphere)
+        included_scrapers = ["infogreffe", "pappers", "societe", "google"]
+        
+        # Prepare compilation input with results from specified scrapers only
         compilation_input = ""
+        processed_count = 0
 
-        # Add results from each scraper
+        # Add results from each included scraper
         for scraper_name, scraper_result in results.items():
-            if scraper_result and scraper_name != "ellisphere":  # Ellisphere handled separately
+            if scraper_name in included_scrapers and scraper_result:
                 compilation_input += f"\n=== {scraper_name.title()} Results ===\n"
                 compilation_input += str(scraper_result) + "\n"
+                processed_count += 1
 
-        # Handle ellisphere separately (list of reports)
-        if "ellisphere" in results and results["ellisphere"]:
-            compilation_input += "\n=== Ellisphere Results ===\n"
-            ellisphere_data = results["ellisphere"]
-            if isinstance(ellisphere_data, list):
-                for i, report in enumerate(ellisphere_data):
-                    compilation_input += f"Report {i+1}:\n{report}\n\n"
-            else:
-                compilation_input += str(ellisphere_data) + "\n"
+        # Check if we have any data to compile
+        if processed_count == 0:
+            return "Aucune donnée disponible pour la compilation. Les scrapers suivants sont pris en charge: " + ", ".join(included_scrapers)
+
+        # Add a note about what was included
+        header = f"=== Rapport Compilé ===\n"
+        header += f"Sources incluses: {', '.join([name.title() for name in included_scrapers if name in results and results[name]])}\n"
+        header += f"Note: Les données Ellisphere sont affichées séparément dans l'onglet 'Résultats'.\n\n"
+        
+        compilation_input = header + compilation_input
 
         # Use the compiler agent to create human-readable document
         compiler = OpenAICompiler()
@@ -238,25 +251,101 @@ async def compile_results(results):
         return compiled_document
 
     except Exception as e:
-        return f"Error during compilation: {str(e)}"
+        return f"Erreur lors de la compilation: {str(e)}\nNote: Les données Ellisphere sont exclues de la compilation."
 
 
-async def process_ellisphere(company_id):
-    """Scrape from Ellisphere (XML-based, no browser needed)"""
+async def process_ellisphere(company_id, output_format="json"):
+    """Scrape from Ellisphere (XML-based, reading from local file)"""
     try:
-        xml_content = get_year_data(company_id)
+        # Get periods data from local file
+        periods_response = parse_periods_from_file(company_id)
+        if not periods_response['success']:
+            error_msg = f"Ellisphere file reading failed: {periods_response['error']}"
+            print(f"Warning: {error_msg}")
+            return {"error": error_msg, "status": "failed"}
+        
+        periods_data = periods_response['data']
         ellisphere_agent = EllisphereAgent()
-        ellisphere_results = []
+        ellisphere_results = {}
 
-        available_reports = get_years_from_ellisphere(xml_content)
-        for year in available_reports:
-            xml_result = get_detailed_report_data(company_id, year)
-            compiled_xml = await ellisphere_agent.parse_xml(xml_result)
-            ellisphere_results.append(compiled_xml)
+        if not periods_data:
+            print("Warning: No Ellisphere periods found in the file")
+            return {"error": "No periods available", "status": "no_data"}
+        
+        # Process each period/year
+        for year, period_xml in periods_data.items():
+            try:
+                print(f"Processing Ellisphere data for year {year}")
+                
+                # Choose operation type based on output_format
+                if output_format == "json":
+                    # Use new JSON parsing functionality for structured data
+                    compiled_data = await ellisphere_agent.run(period_xml, operation_type="xml_to_json")
+                    
+                    # Try to parse as JSON to validate and provide better error handling
+                    try:
+                        import json
+                        import re
+                        
+                        # Clean the response - remove markdown code blocks if present
+                        cleaned_data = compiled_data.strip()
+                        
+                        # Remove markdown code block formatting
+                        if cleaned_data.startswith('```json'):
+                            # Remove opening ```json and closing ```
+                            cleaned_data = re.sub(r'^```json\s*\n?', '', cleaned_data)
+                            cleaned_data = re.sub(r'\n?```\s*$', '', cleaned_data)
+                        elif cleaned_data.startswith('```'):
+                            # Handle generic code blocks
+                            cleaned_data = re.sub(r'^```[a-zA-Z]*\s*\n?', '', cleaned_data)
+                            cleaned_data = re.sub(r'\n?```\s*$', '', cleaned_data)
+                        
+                        parsed_json = json.loads(cleaned_data)
+                        ellisphere_results[year] = {
+                            "format": "json",
+                            "data": parsed_json,
+                            "status": "success"
+                        }
+                    except json.JSONDecodeError as json_error:
+                        print(f"Warning: JSON parsing failed for year {year}: {json_error}")
+                        print(f"Raw data preview: {compiled_data[:200]}...")
+                        ellisphere_results[year] = {
+                            "format": "raw_text",
+                            "data": compiled_data,
+                            "status": "json_parse_failed",
+                            "error": str(json_error)
+                        }
+                else:
+                    # Use original French text parsing for backward compatibility
+                    compiled_data = await ellisphere_agent.parse_xml(period_xml)
+                    ellisphere_results[year] = {
+                        "format": "french_text",
+                        "data": compiled_data,
+                        "status": "success"
+                    }
+                    
+            except Exception as e:
+                print(f"Warning: Failed to parse data for year {year}: {str(e)}")
+                ellisphere_results[year] = {"error": f"Parsing failed: {str(e)}", "status": "failed"}
+                continue  # Skip this year instead of failing completely
 
-        return ellisphere_results
+        if not ellisphere_results:
+            return {"error": "Failed to parse any period data", "status": "no_data"}
+        
+        # Convert dictionary to list format for compatibility with existing frontend
+        # Each entry will have year and data
+        formatted_results = []
+        for year, result in ellisphere_results.items():
+            formatted_results.append({
+                "year": year,
+                "result": result
+            })
+        
+        return formatted_results
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = f"Ellisphere processing error: {str(e)}"
+        print(f"Warning: {error_msg}")
+        return {"error": error_msg, "status": "failed"}
 
 
 @app.get("/get-companies")
