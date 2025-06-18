@@ -15,6 +15,18 @@ def infogreffe_task(company_id, id_type):
     - DO NOT stop at intermediate steps or return status messages
     - The final output should be the extracted company data in the JSON format specified in step 5
 
+    REDIRECT & ERROR HANDLING:
+    - If you find yourself on a Google settings page, Google sign-in page, or any page that is NOT infogreffe.fr, immediately navigate to https://www.infogreffe.fr/
+    - If you get redirected away from infogreffe.fr at any point (to Google, other websites), immediately try to navigate back to https://www.infogreffe.fr/
+    - If the redirect back to infogreffe.fr fails or you keep getting redirected away, immediately return this JSON:
+        {{
+            "error": "chromium_problem",
+            "message": "Unable to stay on infogreffe.fr domain - redirected to external sites",
+            "company_id": "{company_id}",
+            "id_type": "{id_type}"
+        }}
+    - Always verify you are on infogreffe.fr domain before proceeding with any actions
+
     1. Go to https://www.infogreffe.fr/ and accept cookies if prompted.
 
     2. Locate the search bar, ensure it is active, and enter the company's identifications: {company_id}, which is the company's {id_type}, then press Enter or click the search button.

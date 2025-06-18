@@ -22,6 +22,18 @@ def pappers_scrape_task(company_id: str, id_type):
             "id_type": "{id_type}"
         }}
 
+    REDIRECT & ERROR HANDLING:
+    - If you find yourself on a Google settings page, Google sign-in page, or any page that is NOT pappers.fr, immediately navigate to https://www.pappers.fr/
+    - If you get redirected away from pappers.fr at any point (to Google, other websites), immediately try to navigate back to https://www.pappers.fr/
+    - If the redirect back to pappers.fr fails or you keep getting redirected away, immediately return this JSON:
+        {{
+            "error": "chromium_problem",
+            "message": "Unable to stay on pappers.fr domain - redirected to external sites",
+            "company_id": "{company_id}",
+            "id_type": "{id_type}"
+        }}
+    - Always verify you are on pappers.fr domain before proceeding with any actions
+
     IMPORTANT:
     - Simulate human behavior when navigating through the website:
         - Move mouse to element before clicking
