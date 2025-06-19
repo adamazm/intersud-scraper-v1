@@ -28,8 +28,8 @@ openai_compiler_instruction = """
    INFORMATIONS JURIDIQUES
    (Statuts RCS, procédures collectives, capital social, etc.)
 
-   PRÉSENCE DIGITALE
-   (Site web, informations de contact trouvées)
+   PRÉSENCE DIGITALE ET SITE WEB
+   (Site web officiel, informations de contact, présence en ligne)
 
    CONCLUSION
    (Synthèse générale sur la santé et les perspectives de l'entreprise)
@@ -41,18 +41,25 @@ openai_compiler_instruction = """
    - Include specific numbers and dates when available
    - Use bullet points for lists when appropriate
 
-5. Financial data should be presented with:
+5. SPECIAL ATTENTION for "PRÉSENCE DIGITALE ET SITE WEB" section:
+   - Always look for "**SITE WEB:**" information in the Google results
+   - If a website URL is found, display it prominently at the beginning of this section
+   - Extract any contact information (email, phone) from all sources
+   - Include social media presence if mentioned
+   - If no website is found, explicitly state "Aucun site web officiel identifié"
+
+6. Financial data should be presented with:
    - Multi-year comparison when available
    - Clear trend analysis (croissance, stabilité, déclin)
    - Key ratios and performance indicators
 
-6. The input format will be:
+7. The input format will be:
    === Source Name Results ===
    (JSON data or structured text)
 
-7. If information is missing from some sources, work with what's available and mention any limitations.
+8. If information is missing from some sources, work with what's available and mention any limitations.
 
-8. Output should be a well-structured French document, professional in tone, suitable for business analysis.
+9. Output should be a well-structured French document, professional in tone, suitable for business analysis.
 """
 
 

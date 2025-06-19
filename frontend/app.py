@@ -129,15 +129,17 @@ def scrape_company(company, progress_container):
     else:
         company_id = company["company_id"]
 
+    # Create progress bar and percentage display outside the status container
+    my_bar = progress_container.progress(0.0)
+    progress_text = progress_container.empty()
+    progress_text.write("**Progression: 0%**")
+
     with progress_container.status("Récupération des résultats...", state="running", expanded=True):
         try:
             st.write("- Démarrage du processus de scraping...")
             # Get the task ID
             response = api_client.scrape_company(
                 company_id, company["id_type"])
-
-            # Create progress bar
-            my_bar = progress_container.progress(0.0)
 
             if response.status_code != 200:
                 st.error(SCRAPE_FAILED)
@@ -148,14 +150,42 @@ def scrape_company(company, progress_container):
             task_id = task_data.get("task_id")
 
             st.write(f"- ID de la tâche: {task_id}")
-            st.write("- Lancement des scrapers...")
+            
+            # Initialize status display
+            status_placeholders = {}
+            scraper_mapping = {
+                "infogreffe": ("Infogreffe", INFOGREFFE_IN_PROGRESS, INFOGREFFE_OK, INFOGREFFE_ERROR),
+                "pappers": ("Pappers", PAPPERS_IN_PROGRESS, PAPPERS_OK, PAPPERS_ERROR),
+                "societe": ("Société.com", SOCIETE_IN_PROGRESS, SOCIETE_OK, SOCIETE_ERROR),
+                "ellisphere": ("Ellisphere", ELLISPHERE_IN_PROGRESS, ELLISPHERE_OK, ELLISPHERE_ERROR),
+                "google": ("Recherche Générale", GENERAL_IN_PROGRESS, GENERAL_OK, GENERAL_ERROR),
+                "compiled_report": ("Rapport Compilé", COMPILED_REPORT_IN_PROGRESS, COMPILED_REPORT_OK, COMPILED_REPORT_ERROR)
+            }
+            
+            # Create placeholders for each scraper status
+            for scraper_key, (display_name, in_progress, ok, error) in scraper_mapping.items():
+                status_placeholders[scraper_key] = st.empty()
+                status_placeholders[scraper_key].write(f"- {in_progress}")
 
-            # Poll with progress bar
+            def update_status_display(scraper_statuses):
+                """Update the status display based on scraper statuses from backend"""
+                for scraper_key, backend_status in scraper_statuses.items():
+                    if scraper_key in scraper_mapping and scraper_key in status_placeholders:
+                        display_name, in_progress, ok, error = scraper_mapping[scraper_key]
+                        if backend_status == "completed":
+                            status_placeholders[scraper_key].write(f"- {ok}")
+                        elif backend_status == "failed":
+                            status_placeholders[scraper_key].write(f"- {error}")
+                        else:  # running or other status
+                            status_placeholders[scraper_key].write(f"- {in_progress}")
+
+            # Poll with progress bar and status updates
             result = api_client.poll_task_status(
-                task_id, progress_container, my_bar)
+                task_id, progress_container, my_bar, update_status_display, progress_text)
 
             if result:
                 my_bar.progress(1.0)
+                progress_text.write("**Progression: 100%**")
                 st.write("- Tous les scrapers ont été exécutés avec succès!")
 
                 # Store results in session state
@@ -185,6 +215,7 @@ def render_ellisphere_results(ellisphere_data):
     """
     Render ellisphere results with a financial dashboard style for JSON data.
     """
+    st.write("## FAKE DATA POUR DEMO")
     st.subheader("📊 Données Financières Ellisphere")
 
     if not ellisphere_data:
@@ -476,6 +507,22 @@ def render_compiled_report(compiled_data):
     if not compiled_data:
         st.warning("Aucun rapport compilé disponible")
         return
+
+    # Add download button
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        # Generate filename with timestamp
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"rapport_compile_{timestamp}.txt"
+        
+        st.download_button(
+            label="📥 Télécharger",
+            data=compiled_data,
+            file_name=filename,
+            mime="text/plain",
+            help="Télécharger le rapport compilé en format texte"
+        )
 
     # Display the compiled document
     st.markdown(compiled_data)

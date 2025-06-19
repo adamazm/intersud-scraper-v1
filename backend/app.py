@@ -41,7 +41,7 @@ def run_async(coro):
         loop.close()
 
 
-def update_task_status(task_id, status, data=None, error=None, progress=None):
+def update_task_status(task_id, status, data=None, error=None, progress=None, scraper_statuses=None):
     """Thread-safe update of task status"""
     with task_lock:
         if data is not None:
@@ -59,6 +59,9 @@ def update_task_status(task_id, status, data=None, error=None, progress=None):
 
         if progress is not None:
             task_results[task_id]["progress"] = progress
+            
+        if scraper_statuses is not None:
+            task_results[task_id]["scraper_statuses"] = scraper_statuses
 
 
 def process_scraper(task_id, company_id, id_type):
@@ -108,8 +111,14 @@ def process_scraper(task_id, company_id, id_type):
             len(independent_scrapers)
         progress_per_dependent = dependent_progress / len(dependent_scrapers)
 
-        # Update the task status to running
-        update_task_status(task_id, TaskStatus.RUNNING.value, progress=0)
+        # Initialize scraper statuses - all start as running
+        scraper_statuses = {}
+        all_scrapers = independent_scrapers + dependent_scrapers + [{"name": "compiled_report", "display_name": "Compiled Report"}]
+        for scraper in all_scrapers:
+            scraper_statuses[scraper["name"]] = "running"
+
+        # Update the task status to running with initial scraper statuses
+        update_task_status(task_id, TaskStatus.RUNNING.value, progress=0, scraper_statuses=scraper_statuses)
 
         results = {}
 
@@ -118,7 +127,7 @@ def process_scraper(task_id, company_id, id_type):
             # Update progress at start of each scraper
             current_progress = int(i * progress_per_independent)
             update_task_status(
-                task_id, TaskStatus.RUNNING.value, progress=current_progress)
+                task_id, TaskStatus.RUNNING.value, progress=current_progress, scraper_statuses=scraper_statuses)
 
             # Handle different scraper types with individual error handling
             try:
@@ -132,16 +141,20 @@ def process_scraper(task_id, company_id, id_type):
                     result = run_async(agent.scrape(company_id, id_type))
 
                 results[scraper_config["name"]] = result
+                # Mark scraper as completed successfully
+                scraper_statuses[scraper_config["name"]] = "completed"
             except Exception as e:
                 # Log the error but continue with other scrapers
                 error_msg = f"Error in {scraper_config['display_name']} scraper: {str(e)}"
                 print(f"Warning: {error_msg}")
                 results[scraper_config["name"]] = {"error": error_msg, "status": "failed"}
+                # Mark scraper as failed
+                scraper_statuses[scraper_config["name"]] = "failed"
 
             # Update progress after completing this scraper
             completed_progress = int((i + 1) * progress_per_independent)
             update_task_status(task_id, TaskStatus.RUNNING.value,
-                               progress=completed_progress)
+                               progress=completed_progress, scraper_statuses=scraper_statuses)
 
         # Phase 2: Run dependent scrapers
         for i, scraper_config in enumerate(dependent_scrapers):
@@ -149,7 +162,7 @@ def process_scraper(task_id, company_id, id_type):
             current_progress = int(
                 independent_progress + (i * progress_per_dependent))
             update_task_status(
-                task_id, TaskStatus.RUNNING.value, progress=current_progress)
+                task_id, TaskStatus.RUNNING.value, progress=current_progress, scraper_statuses=scraper_statuses)
 
             # Get input data from dependency
             input_data = get_dependency_input(
@@ -158,40 +171,60 @@ def process_scraper(task_id, company_id, id_type):
             if input_data is None:
                 # No valid input found, skip this scraper or use fallback
                 results[scraper_config["name"]] = None
+                scraper_statuses[scraper_config["name"]] = "failed"
                 continue
 
-            # Run dependent scraper with input data
-            if scraper_config["name"] == "google":
-                # Google task needs parsed data as input (only one argument)
-                agent = ScrapingAgent(
-                    scraper_config["task_function"](input_data))
-                result = run_async(agent.scrape(input_data, id_type))
-            else:
-                # Handle other dependent scrapers if added in future
-                agent = ScrapingAgent(
-                    scraper_config["task_function"](company_id, id_type))
-                result = run_async(agent.scrape(company_id, id_type))
+            try:
+                # Run dependent scraper with input data
+                if scraper_config["name"] == "google":
+                    # Google task needs parsed data as input (only one argument)
+                    agent = ScrapingAgent(
+                        scraper_config["task_function"](input_data))
+                    result = run_async(agent.scrape(input_data, id_type))
+                else:
+                    # Handle other dependent scrapers if added in future
+                    agent = ScrapingAgent(
+                        scraper_config["task_function"](company_id, id_type))
+                    result = run_async(agent.scrape(company_id, id_type))
 
-            results[scraper_config["name"]] = result
+                results[scraper_config["name"]] = result
+                scraper_statuses[scraper_config["name"]] = "completed"
+            except Exception as e:
+                error_msg = f"Error in {scraper_config['display_name']} scraper: {str(e)}"
+                print(f"Warning: {error_msg}")
+                results[scraper_config["name"]] = {"error": error_msg, "status": "failed"}
+                scraper_statuses[scraper_config["name"]] = "failed"
 
             # Update progress after completing this scraper
             completed_progress = int(
                 independent_progress + ((i + 1) * progress_per_dependent))
             update_task_status(task_id, TaskStatus.RUNNING.value,
-                               progress=completed_progress)
+                               progress=completed_progress, scraper_statuses=scraper_statuses)
 
         # Phase 3: Compile all results into human-readable document
-        update_task_status(task_id, TaskStatus.RUNNING.value, progress=95)
-        compiled_document = run_async(compile_results(results))
-        results["compiled_report"] = compiled_document
+        update_task_status(task_id, TaskStatus.RUNNING.value, progress=95, scraper_statuses=scraper_statuses)
+        try:
+            compiled_document = run_async(compile_results(results))
+            results["compiled_report"] = compiled_document
+            scraper_statuses["compiled_report"] = "completed"
+        except Exception as e:
+            error_msg = f"Error in compilation: {str(e)}"
+            print(f"Warning: {error_msg}")
+            results["compiled_report"] = {"error": error_msg, "status": "failed"}
+            scraper_statuses["compiled_report"] = "failed"
 
         # Ensure final progress is exactly 100%
         update_task_status(task_id, TaskStatus.COMPLETED.value,
-                           data=results, progress=100)
+                           data=results, progress=100, scraper_statuses=scraper_statuses)
 
     except Exception as e:
+        # Mark all scrapers as failed
+        failed_statuses = {}
+        all_scrapers = ["infogreffe", "pappers", "societe", "ellisphere", "google", "compiled_report"]
+        for scraper in all_scrapers:
+            failed_statuses[scraper] = "failed"
         update_task_status(task_id, TaskStatus.FAILED.value,
-                           error=str(e), progress=0)
+                           error=str(e), progress=0, scraper_statuses=failed_statuses)
 
 
 def get_dependency_input(results, dependency_list):

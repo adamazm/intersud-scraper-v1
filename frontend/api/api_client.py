@@ -40,7 +40,7 @@ class ApiClient:
         response = requests.post(url, params=params)
         return response
 
-    def poll_task_status(self, task_id: str, progress_container, progress_bar=None):
+    def poll_task_status(self, task_id: str, progress_container, progress_bar=None, status_display=None, progress_text=None):
         """
         Poll the status of a task
         """
@@ -53,14 +53,22 @@ class ApiClient:
                     task_data = result.get("data", {})
                     status = task_data.get("status")
                     progress = task_data.get("progress", 0)
+                    scraper_statuses = task_data.get("scraper_statuses", {})
 
-                    # Update progress bar if provided
+                    # Update progress bar and percentage text if provided
                     if progress_bar is not None:
                         progress_bar.progress(progress / 100.0)
+                    
+                    if progress_text is not None:
+                        progress_text.write(f"**Progression: {progress:.0f}%**")
 
-                    if status == "completed":
-                        progress_container.success("Scraping completed")
-                        return task_data
+                    # Update status display if provided
+                    if status_display is not None:
+                        status_display(scraper_statuses)
+
+                        if status == "completed":
+                            progress_container.success("Scraping terminé")
+                            return task_data
                     elif status == "failed":
                         error_message = task_data.get("error", "Unknown error")
                         progress_container.error(error_message)
