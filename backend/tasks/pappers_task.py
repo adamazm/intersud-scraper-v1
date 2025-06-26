@@ -139,27 +139,23 @@ def pappers_scrape_task(company_id: str, id_type):
             {{
                 "type_document": "...",
                 "nom_document": "...",
-                "date_document": "...",
-                "lien_telechargement": "..."
+                "date_document": "..."
             }},
             {{
                 "type_document": "...",
                 "nom_document": "...",
-                "date_document": "...",
-                "lien_telechargement": "..."
+                "date_document": "..."
             }}
         ],
         "statuts_constitutifs": {{
             "nom_document": "...",
             "date_document": "...",
-            "lien_telechargement": "...",
             "details": "..."
         }},
         "derniere_liasse_publiee": {{
             "nom_document": "...",
             "exercice": "...",
             "date_publication": "...",
-            "lien_telechargement": "...",
             "type_document": "..."
         }},
         "documents_juridiques": [
@@ -199,22 +195,19 @@ def pappers_scrape_task(company_id: str, id_type):
         a) **Les deux derniers documents juridiques**: Find the legal documents section and extract the TWO most recent legal documents. For each document, get:
            - Type of document
            - Document name
-           - Document date
-           - Download link (if available)
+           - Document date (if available)
            Include this in the "derniers_documents_juridiques" array (limited to 2 items).
         
         b) **Les statuts constitutifs**: Look for the constitutive statutes document. Extract:
            - Document name
-           - Document date
-           - Download link (if available)
+           - Document date (if available)
            - Any additional details
            Include this in the "statuts_constitutifs" object.
         
         c) **La dernière liasse publiée**: Find the most recent published financial statements. Extract:
            - Document name
            - Exercise year
-           - Publication date
-           - Download link (if available)
+           - Publication date (if available)
            - Document type
            Include this in the "derniere_liasse_publiee" object.
 
@@ -227,8 +220,7 @@ def pappers_scrape_task(company_id: str, id_type):
         - Use null for missing values, empty arrays [] for missing lists.
         - If multiple items exist in a section (dirigeants, documents_juridiques), include all in the respective arrays.
         - Extract all available years in financial data.
-        - For download links, capture the full URL including the domain if it's a relative link
-        - Pay special attention to document sections and look for download buttons or links
+        - Pay special attention to document sections to extract document names, types, and dates
         - Return ONLY valid JSON format - no additional text or formatting.
         - Ensure all JSON keys use snake_case format.
         - DO NOT include any explanatory text, headers, or markdown formatting.

@@ -77,6 +77,15 @@ def infogreffe_task(company_id, id_type):
                 }}
             ]
         }},
+        "comptes_annuels": [
+            {{
+                "exercice": "...",
+                "statut_publication": "...",
+                "formule_confidentialite": "...",
+                "date_cloture": "...",
+                "date_depot": "..."
+            }}
+        ],
         "etablissements": [
             {{
                 "nom": "...",
@@ -87,14 +96,27 @@ def infogreffe_task(company_id, id_type):
         ]
     }}
 
-    6. If a section is missing or unparseable, set the value to null or empty array as appropriate and continue.
+    6. **EXTRACT COMPTES ANNUELS**: Look for the annual accounts section ("comptes annuels" or similar) and extract information about published annual accounts. For each annual account, extract:
+       - Exercise year (exercice)
+       - Publication status (whether published or not)
+       - Confidentiality formula:
+         * "entièrement" (fully published)
+         * "avec confidentialité du bilan" (with balance sheet confidentiality)
+         * "avec confidentialité du compte de résultat" (with income statement confidentiality)
+         * or any other confidentiality status mentioned
+       - Closure date (date de clôture) if available
+       - Deposit date (date de dépôt) if available
+       Include this information in the "comptes_annuels" array.
+
+    7. If a section is missing or unparseable, set the value to null or empty array as appropriate and continue.
 
     Important Notes:
     - SKIP THE DOCUMENTS SECTION!
     - Ensure all sections are expanded before extracting data.
     - Extract all years present in the financial analysis.
+    - Pay special attention to the annual accounts section to capture publication status and confidentiality formulas
     - Use null for missing values, empty arrays [] for missing lists.
-    - If multiple items exist in a section (dirigeants, etablissements), include all in the respective arrays.
+    - If multiple items exist in a section (dirigeants, etablissements, comptes_annuels), include all in the respective arrays.
     - Return ONLY valid JSON format - no additional text or formatting.
     - Ensure all JSON keys use snake_case format.
     - DO NOT include any explanatory text, headers, or markdown formatting.
