@@ -77,22 +77,69 @@ def google_task(parsed_info):
        - Move mouse occasionally to different parts of visible content
        - Look for key information: About page, contact info, services, etc.
        - If you see navigation menus, briefly hover over them
-       - Spend 10-15 seconds total exploring the site
+       - Spend 15-20 seconds total exploring the main site
 
-    9. **Gathering information:**
-       - Focus on company description, services, contact information
-       - Note the official website URL from the address bar
-       - Look for any social media links or additional contact methods
+    9. **Search for Legal Mentions (Mentions Légales):**
+       - Look for "Mentions légales", "Legal", or footer links
+       - Click on legal mentions page if found
+       - Search for SIREN number to verify company identity
+       - Note any legal information found
+       - Spend 5-10 seconds reading this section
+
+    10. **Search for Certifications and Standards:**
+        - Look for pages like "Certifications", "Normes", "Quality", "Standards"
+        - Check for logos or mentions of: ISO certifications, quality standards, industry certifications
+        - Navigate to relevant pages if found
+        - Note any certifications, accreditations, or standards mentioned
+
+    11. **Explore Company Activity:**
+        - Visit "About", "Services", "Produits", "Activités" pages
+        - Look for detailed descriptions of business activities
+        - Note main business sectors and services offered
+        - Check for any specific industry focus or specializations
+
+    12. **Search for Named Clients:**
+        - Look for "Clients", "References", "Témoignages", "Case Studies", "Portfolio" pages
+        - Check for client logos, testimonials, or project references
+        - Note any specifically named clients or partner companies
+        - Look in project descriptions or success stories
+
+    13. **Search for Named Suppliers/Partners:**
+        - Look for "Partenaires", "Fournisseurs", "Partners", "Suppliers" pages
+        - Check footer areas for partner logos or links
+        - Note any specifically mentioned suppliers, distributors, or business partners
+        - Look for technology partners or strategic alliances
+
+    14. **Gathering comprehensive information:**
+        - Focus on company description, services, contact information
+        - Note the official website URL from the address bar
+        - Look for any social media links or additional contact methods
+        - Compile all the specific information requested
 
     Your final output MUST follow this EXACT format in FRENCH:
 
     **SITE WEB:** [URL du site web principal de l'entreprise - ou "Pas de site web trouvé" si aucun site n'est trouvé]
 
+    **MENTIONS LÉGALES & SIREN:**
+    [Information trouvée dans les mentions légales, incluant la vérification du SIREN si trouvé - ou "Pas de mentions légales trouvées" si aucune information]
+
+    **CERTIFICATIONS & NORMES:**
+    [Liste des certifications, normes, standards mentionnés sur le site - ou "Aucune certification trouvée" si aucune information]
+
+    **ACTIVITÉ:**
+    [Description détaillée de l'activité de l'entreprise basée sur le site web]
+
+    **CLIENTS NOMMÉS:**
+    [Liste des clients spécifiquement nommés ou mentionnés - ou "Aucun client nommé trouvé" si aucune information]
+
+    **FOURNISSEURS/PARTENAIRES NOMMÉS:**
+    [Liste des fournisseurs ou partenaires spécifiquement nommés - ou "Aucun fournisseur/partenaire nommé trouvé" si aucune information]
+
     **PRÉSENCE DIGITALE:**
     [Description de la présence en ligne de l'entreprise]
 
-    **INFORMATIONS TROUVÉES:**
-    [Résumé détaillé des informations trouvées sur le site web en français]
+    **INFORMATIONS COMPLÉMENTAIRES:**
+    [Toute autre information pertinente trouvée sur le site web]
 
     CRITICAL REQUIREMENTS:
     - Start your response with "**SITE WEB:**" followed by the main website URL
@@ -102,4 +149,6 @@ def google_task(parsed_info):
     - NEVER rush through actions - always simulate realistic human timing
     - Vary your interaction patterns to avoid appearing robotic
     - If the website seems unrelated to the company, try the next search result
+    - Be thorough in searching for the specific information requested
+    - If information is not found in a category, clearly state so using the suggested phrases
     """
