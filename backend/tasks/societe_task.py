@@ -91,6 +91,14 @@ def societe_scrape_task(company_id, id_type):
                 "code_greffe": "..."
             }}
         }},
+        "procedures_collectives": {{
+            "statut": "...",
+            "date_ouverture": "...",
+            "type_procedure": "...",
+            "details": "...",
+            "greffe": "...",
+            "reference": "..."
+        }},
         "entreprises_liees": {{
             "nombre_societes_liees": "...",
             "entreprises_mentionnees": [
@@ -120,6 +128,44 @@ def societe_scrape_task(company_id, id_type):
                 "adresse": "..."
             }}
         ],
+        "cartographie": {{
+            "entreprises_controlees": [
+                {{
+                    "nom_entreprise": "...",
+                    "siren": "...",
+                    "pourcentage_controle": "...",
+                    "type_controle": "...",
+                    "statut": "..."
+                }}
+            ],
+            "entreprises_controles": [
+                {{
+                    "nom_entreprise": "...",
+                    "siren": "...",
+                    "pourcentage_controle": "...",
+                    "type_controle": "...",
+                    "statut": "..."
+                }}
+            ],
+            "filiales": [
+                {{
+                    "nom_entreprise": "...",
+                    "siren": "...",
+                    "pourcentage_participation": "...",
+                    "type_participation": "...",
+                    "statut": "..."
+                }}
+            ],
+            "participations": [
+                {{
+                    "nom_entreprise": "...",
+                    "siren": "...",
+                    "pourcentage_participation": "...",
+                    "type_participation": "...",
+                    "statut": "..."
+                }}
+            ]
+        }},
         "director_profile": {{
             "identite": {{
                 "nom_complet": "...",
@@ -145,15 +191,31 @@ def societe_scrape_task(company_id, id_type):
 
     6. Skip sections with images, ads or non-textual content.
 
+    7. **EXTRACT CARTIOGRAPHY DATA**: After completing the company page extraction, look for a button with the text "Explorer la cartographie" on the company's profile page. If found, click on this button to navigate to the cartography page. Extract all available cartography information including:
+       - Entreprises contrôlées (controlled companies)
+       - Entreprises contrôles (controlling companies) 
+       - Filiales (subsidiaries)
+       - Participations (participations)
+       Include this data in the "cartographie" section of the JSON output above.
+
+    8. **EXTRACT PROCEDURES COLLECTIVES**: Look for the "Les procédures collectives" section on the company's profile page. Extract all available information about collective procedures including:
+       - Statut (status)
+       - Date d'ouverture (opening date)
+       - Type de procédure (procedure type)
+       - Détails (details)
+       - Greffe (court registry)
+       - Référence (reference)
+       Include this data in the "procedures_collectives" section of the JSON output above.
+
     If the director name is found, perform the following additional steps:
 
-    7. Go back to societe.com homepage (https://www.societe.com/) and accept cookies if prompted.
+    9. Go back to societe.com homepage (https://www.societe.com/) and accept cookies if prompted.
 
-    8. **Locate the search bar for the first time and find it and click it again.** Ensure that the search bar is active before entering the director's name, then press Enter.
+    10. **Locate the search bar for the first time and find it and click it again.** Ensure that the search bar is active before entering the director's name, then press Enter.
 
-    9. Scroll to the **top of the results page** and examine the search results. Identify the correct profile by matching the company's name.
+    11. Scroll to the **top of the results page** and examine the search results. Identify the correct profile by matching the company's name.
 
-    10. Once you find the correct director, extract and organize all available information about the director and include it in the director_profile section of the JSON above.
+    12. Once you find the correct director, extract and organize all available information about the director and include it in the director_profile section of the JSON above.
 
     Important Notes:
     - Always scroll to the top before performing searches or analyzing results.
