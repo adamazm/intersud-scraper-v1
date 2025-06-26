@@ -135,6 +135,33 @@ def pappers_scrape_task(company_id: str, id_type):
                 "age_date_naissance": "..."
             }}
         ],
+        "derniers_documents_juridiques": [
+            {{
+                "type_document": "...",
+                "nom_document": "...",
+                "date_document": "...",
+                "lien_telechargement": "..."
+            }},
+            {{
+                "type_document": "...",
+                "nom_document": "...",
+                "date_document": "...",
+                "lien_telechargement": "..."
+            }}
+        ],
+        "statuts_constitutifs": {{
+            "nom_document": "...",
+            "date_document": "...",
+            "lien_telechargement": "...",
+            "details": "..."
+        }},
+        "derniere_liasse_publiee": {{
+            "nom_document": "...",
+            "exercice": "...",
+            "date_publication": "...",
+            "lien_telechargement": "...",
+            "type_document": "..."
+        }},
         "documents_juridiques": [
             {{
                 "type_document": "...",
@@ -167,7 +194,31 @@ def pappers_scrape_task(company_id: str, id_type):
         ]
     }}
 
-    13. If information for a section is unavailable or unparseable, set the value to null or empty array as appropriate and continue.
+    13. **EXTRACT SPECIFIC DOCUMENTS**: After extracting the general information, look for and extract the following specific documents:
+        
+        a) **Les deux derniers documents juridiques**: Find the legal documents section and extract the TWO most recent legal documents. For each document, get:
+           - Type of document
+           - Document name
+           - Document date
+           - Download link (if available)
+           Include this in the "derniers_documents_juridiques" array (limited to 2 items).
+        
+        b) **Les statuts constitutifs**: Look for the constitutive statutes document. Extract:
+           - Document name
+           - Document date
+           - Download link (if available)
+           - Any additional details
+           Include this in the "statuts_constitutifs" object.
+        
+        c) **La dernière liasse publiée**: Find the most recent published financial statements. Extract:
+           - Document name
+           - Exercise year
+           - Publication date
+           - Download link (if available)
+           - Document type
+           Include this in the "derniere_liasse_publiee" object.
+
+    14. If information for a section is unavailable or unparseable, set the value to null or empty array as appropriate and continue.
 
     CRITICAL: YOUR FINAL OUTPUT MUST BE VALID JSON ONLY!
 
@@ -176,6 +227,8 @@ def pappers_scrape_task(company_id: str, id_type):
         - Use null for missing values, empty arrays [] for missing lists.
         - If multiple items exist in a section (dirigeants, documents_juridiques), include all in the respective arrays.
         - Extract all available years in financial data.
+        - For download links, capture the full URL including the domain if it's a relative link
+        - Pay special attention to document sections and look for download buttons or links
         - Return ONLY valid JSON format - no additional text or formatting.
         - Ensure all JSON keys use snake_case format.
         - DO NOT include any explanatory text, headers, or markdown formatting.
