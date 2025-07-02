@@ -48,8 +48,9 @@ def google_task(parsed_info):
        - Click on the search bar and wait briefly for cursor to appear
 
     4. **Typing the search query:**
-       - Use the EXTRACTED COMPANY NAME from the rules above
-       - Type the company name with realistic human typing speed
+       - Use ONLY the EXTRACTED COMPANY NAME from the rules above
+       - Type ONLY the company name (example: "KREANCIA" not "KREANCIA site:domain.com")
+       - Type with realistic human typing speed
        - Add occasional brief pauses (0.1-0.3 seconds) between words
        - If you make a "typo", backspace and correct it naturally
        - Pause 1-2 seconds after finishing typing
@@ -67,11 +68,14 @@ def google_task(parsed_info):
        - Look for official company websites (avoid directories, social media as primary choice)
 
     7. **Selecting and visiting the website:**
-       - Move mouse to the most relevant result
+       - Move mouse to the most relevant result (usually the official company website)
        - Hover for 1-2 seconds before clicking
        - Click on the result and wait for new page to load (3-5 seconds)
 
-    8. **Exploring the company website:**
+    **IMPORTANT: Once you click on the company website, DO NOT go back to DuckDuckGo. Stay on the company website and complete all the following steps on that site.**
+
+    8. **Exploring the company website (STAY ON THIS SITE):**
+       - You are now on the company's website - do not return to search
        - Scroll down slowly in small increments (100-200px at a time)
        - Pause every 2-3 scrolls to "read" content (2-4 seconds)
        - Move mouse occasionally to different parts of visible content
@@ -79,42 +83,44 @@ def google_task(parsed_info):
        - If you see navigation menus, briefly hover over them
        - Spend 15-20 seconds total exploring the main site
 
-    9. **Search for Legal Mentions (Mentions Légales):**
-       - Look for "Mentions légales", "Legal", or footer links
-       - Click on legal mentions page if found
+    9. **Search for Legal Mentions within the website (DO NOT use search engines):**
+       - Look for "Mentions légales", "Legal", or footer links on the current website
+       - Click on legal mentions page if found within the website navigation
        - Search for SIREN number to verify company identity
-       - Note any legal information found
+       - Note any legal information found on the website
        - Spend 5-10 seconds reading this section
 
-    10. **Search for Certifications and Standards:**
-        - Look for pages like "Certifications", "Normes", "Quality", "Standards"
+    10. **Search for Certifications and Standards within the website:**
+        - Navigate within the website to find "Certifications", "Normes", "Quality", "Standards" pages
         - Check for logos or mentions of: ISO certifications, quality standards, industry certifications
-        - Navigate to relevant pages if found
-        - Note any certifications, accreditations, or standards mentioned
+        - Navigate to relevant pages using the website's own navigation menu
+        - Note any certifications, accreditations, or standards mentioned on the site
 
-    11. **Explore Company Activity:**
-        - Visit "About", "Services", "Produits", "Activités" pages
-        - Look for detailed descriptions of business activities
+    11. **Explore Company Activity within the website:**
+        - Visit "About", "Services", "Produits", "Activités" pages using the site's navigation
+        - Look for detailed descriptions of business activities on the website
         - Note main business sectors and services offered
         - Check for any specific industry focus or specializations
 
-    12. **Search for Named Clients:**
-        - Look for "Clients", "References", "Témoignages", "Case Studies", "Portfolio" pages
-        - Check for client logos, testimonials, or project references
-        - Note any specifically named clients or partner companies
-        - Look in project descriptions or success stories
+    12. **Search for Named Clients within the website:**
+        - Look for "Clients", "References", "Témoignages", "Case Studies", "Portfolio" pages on the site
+        - Check for client logos, testimonials, or project references on the website
+        - Note any specifically named clients or partner companies mentioned on the site
+        - Look in project descriptions or success stories on the website
 
-    13. **Search for Named Suppliers/Partners:**
-        - Look for "Partenaires", "Fournisseurs", "Partners", "Suppliers" pages
-        - Check footer areas for partner logos or links
-        - Note any specifically mentioned suppliers, distributors, or business partners
-        - Look for technology partners or strategic alliances
+    13. **Search for Named Suppliers/Partners within the website:**
+        - Look for "Partenaires", "Fournisseurs", "Partners", "Suppliers" pages on the site
+        - Check footer areas for partner logos or links within the website
+        - Note any specifically mentioned suppliers, distributors, or business partners on the site
+        - Look for technology partners or strategic alliances mentioned on the website
 
-    14. **Gathering comprehensive information:**
-        - Focus on company description, services, contact information
+    14. **Gathering comprehensive information from the website:**
+        - Focus on company description, services, contact information found on the site
         - Note the official website URL from the address bar
-        - Look for any social media links or additional contact methods
-        - Compile all the specific information requested
+        - Look for any social media links or additional contact methods on the site
+        - Compile all the specific information requested from the website content
+
+    **CRITICAL: Complete all steps 8-14 on the company website. Do not return to DuckDuckGo or any search engine.**
 
     Your final output MUST follow this EXACT format in FRENCH:
 
@@ -149,6 +155,7 @@ def google_task(parsed_info):
     - NEVER rush through actions - always simulate realistic human timing
     - Vary your interaction patterns to avoid appearing robotic
     - If the website seems unrelated to the company, try the next search result
-    - Be thorough in searching for the specific information requested
+    - Be thorough in searching for the specific information requested on the company website
     - If information is not found in a category, clearly state so using the suggested phrases
+    - DO NOT perform additional searches after finding the company website - stay on the site and scrape it thoroughly
     """

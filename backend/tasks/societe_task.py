@@ -117,6 +117,7 @@ def societe_scrape_task(company_id, id_type):
                 "fonction": "..."
             }}
         ],
+        "nombre_etablissements": "...",
         "etablissements": [
             {{
                 "statut": "...",
@@ -191,14 +192,16 @@ def societe_scrape_task(company_id, id_type):
 
     6. Skip sections with images, ads or non-textual content.
 
-    7. **EXTRACT CARTIOGRAPHY DATA**: After completing the company page extraction, look for a button with the text "Explorer la cartographie" on the company's profile page. If found, click on this button to navigate to the cartography page. Extract all available cartography information including:
+    7. **EXTRACT NOMBRE D'ÉTABLISSEMENTS**: Count and extract the total number of establishments (including headquarters and secondary establishments) and include this information in the "nombre_etablissements" field. This count is critical for the client requirements.
+
+    8. **EXTRACT CARTIOGRAPHY DATA**: After completing the company page extraction, look for a button with the text "Explorer la cartographie" on the company's profile page. If found, click on this button to navigate to the cartography page. Extract all available cartography information including:
        - Entreprises contrôlées (controlled companies)
        - Entreprises contrôles (controlling companies) 
        - Filiales (subsidiaries)
        - Participations (participations)
        Include this data in the "cartographie" section of the JSON output above.
 
-    8. **EXTRACT PROCEDURES COLLECTIVES**: Look for the "Les procédures collectives" section on the company's profile page. Extract all available information about collective procedures including:
+    9. **EXTRACT PROCEDURES COLLECTIVES**: Look for the "Les procédures collectives" section on the company's profile page. Extract all available information about collective procedures including:
        - Statut (status)
        - Date d'ouverture (opening date)
        - Type de procédure (procedure type)
@@ -209,17 +212,18 @@ def societe_scrape_task(company_id, id_type):
 
     If the director name is found, perform the following additional steps:
 
-    9. Go back to societe.com homepage (https://www.societe.com/) and accept cookies if prompted.
+    10. Go back to societe.com homepage (https://www.societe.com/) and accept cookies if prompted.
 
-    10. **Locate the search bar for the first time and find it and click it again.** Ensure that the search bar is active before entering the director's name, then press Enter.
+    11. **Locate the search bar for the first time and find it and click it again.** Ensure that the search bar is active before entering the director's name, then press Enter.
 
-    11. Scroll to the **top of the results page** and examine the search results. Identify the correct profile by matching the company's name.
+    12. Scroll to the **top of the results page** and examine the search results. Identify the correct profile by matching the company's name.
 
-    12. Once you find the correct director, extract and organize all available information about the director and include it in the director_profile section of the JSON above.
+    13. Once you find the correct director, extract and organize all available information about the director and include it in the director_profile section of the JSON above.
 
     Important Notes:
     - Always scroll to the top before performing searches or analyzing results.
     - If the section contains an expander, ensure to expand it before extracting data.
+    - Pay special attention to extracting the COUNT of establishments as this is a specific client requirement
     - Use null for missing values, empty arrays [] for missing lists.
     - If information for a section is unavailable or unparseable, set the value to null or empty array as appropriate.
     - If the director name is not provided, set director_profile to null.
