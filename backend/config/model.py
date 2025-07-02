@@ -1,4 +1,4 @@
-from langchain_openai import ChatOpenAI
+from browser_use.llm import ChatOpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
