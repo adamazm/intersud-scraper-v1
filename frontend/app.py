@@ -530,6 +530,10 @@ def render_compiled_report(compiled_data):
     with col2:
         # PDF download button
         filename_pdf = f"rapport_compile_{timestamp}.pdf"
+        
+        # Debug information
+        st.write(f"Debug: Compiled data type: {type(compiled_data)}, length: {len(compiled_data) if compiled_data else 0}")
+        
         pdf_data = markdown_to_pdf(compiled_data)
         
         if pdf_data:
@@ -540,8 +544,17 @@ def render_compiled_report(compiled_data):
                 mime="application/pdf",
                 help="Télécharger le rapport compilé en format PDF avec mise en forme"
             )
+            st.success(f"PDF prêt ({len(pdf_data)} bytes)")
         else:
-            st.error("Impossible de générer le PDF")
+            # Still show a disabled button for better UX
+            st.download_button(
+                label="📄 PDF Indisponible",
+                data="",
+                file_name=filename_pdf,
+                mime="text/plain",
+                help="Génération PDF échouée - consultez les messages d'erreur",
+                disabled=True
+            )
 
     # Display the compiled document
     st.markdown(compiled_data)

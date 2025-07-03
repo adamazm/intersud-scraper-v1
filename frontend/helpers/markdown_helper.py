@@ -9,6 +9,11 @@ def markdown_to_pdf(markdown_text):
     Convert markdown text to PDF with proper styling.
     """
     try:
+        # Validate input
+        if not markdown_text or not isinstance(markdown_text, str):
+            print(f"Debug: Invalid markdown_text: {type(markdown_text)}, {bool(markdown_text)}")
+            return None
+            
         # Convert markdown to HTML
         html_content = markdown.markdown(markdown_text, extensions=['extra', 'codehilite'])
         
@@ -136,8 +141,16 @@ def markdown_to_pdf(markdown_text):
         HTML(string=full_html).write_pdf(pdf_buffer)
         pdf_buffer.seek(0)
         
-        return pdf_buffer.getvalue()
+        result = pdf_buffer.getvalue()
+        print(f"Debug: PDF generated successfully, size: {len(result)} bytes")
+        return result
     
     except Exception as e:
-        st.error(f"Erreur lors de la génération du PDF: {str(e)}")
+        error_msg = f"Erreur lors de la génération du PDF: {str(e)}"
+        print(f"Debug: {error_msg}")
+        # Only show streamlit error if st is available and imported properly
+        try:
+            st.error(error_msg)
+        except:
+            pass  # Silently fail if streamlit isn't available
         return None 
