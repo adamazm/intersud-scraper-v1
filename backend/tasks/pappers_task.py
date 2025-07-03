@@ -76,7 +76,14 @@ def pappers_scrape_task(company_id: str, id_type):
     
     11. Once on the company page, scroll naturally through the page (not all at once) to load all content.
     
-    12. Extract and organize the information and return the data in JSON format:
+    12. **LOCATE SPECIFIC DATA SECTIONS**: Before extracting data, identify and navigate to these specific HTML sections on the page:
+        - **Establishment data**: Look for `<section id="etablissements">` for establishment information
+        - **Director information**: Look for `<section id="dirigeants">` for director details including age and birth date
+        - **Legal documents**: Look for `<section id="actes" data-id="documents">` for legal/judicial documents
+        - Scroll to each section to ensure all content is loaded before extracting data
+        - If sections are expandable or have "Show more" buttons, click them to reveal all content
+    
+    13. Extract and organize the information and return the data in JSON format:
 
     {{
         "source": "pappers.fr",
@@ -199,37 +206,54 @@ def pappers_scrape_task(company_id: str, id_type):
         ]
     }}
 
-    13. **EXTRACT SPECIFIC DOCUMENTS**: After extracting the general information, look for and extract the following specific documents:
+    14. **EXTRACT SPECIFIC DOCUMENTS FROM CORRECT SECTIONS**: Using the HTML sections identified in step 12, extract the following specific documents:
         
-        a) **Les deux derniers documents juridiques**: Find the legal documents section and extract the TWO most recent legal documents. For each document, get:
+        a) **Les deux derniers documents juridiques**: In the `<section id="actes" data-id="documents">` section, extract the TWO most recent legal documents. For each document, get:
            - Type of document
            - Document name
            - Document date (if available)
            Include this in the "derniers_documents_juridiques" array (limited to 2 items).
         
-        b) **Les statuts constitutifs**: Look for the constitutive statutes document. Extract:
+        b) **Les statuts constitutifs**: In the `<section id="actes" data-id="documents">` section, look for the constitutive statutes document. Extract:
            - Document name
            - Document date (if available)
            - Any additional details
            Include this in the "statuts_constitutifs" object.
         
-        c) **La dernière liasse publiée**: Find the most recent published financial statements. Extract:
+        c) **La dernière liasse publiée**: In the `<section id="actes" data-id="documents">` section, find the most recent published financial statements. Extract:
            - Document name
            - Exercise year
            - Publication date (if available)
            - Document type
            Include this in the "derniere_liasse_publiee" object.
 
-    14. If information for a section is unavailable or unparseable, set the value to null or empty array as appropriate and continue.
+        d) **Director information**: In the `<section id="dirigeants">` section, extract complete director information including:
+           - Full name (nom_complet)
+           - Function/role (fonction)
+           - Age and birth date (age_date_naissance) - this data should be available in this section
+           
+        e) **Establishment data**: In the `<section id="etablissements">` section, extract:
+           - Type of establishment (type_etablissement)
+           - Status (statut)
+           - Address (adresse)
+           - Creation date (date_creation)
+
+    15. If information for a section is unavailable or unparseable, set the value to null or empty array as appropriate and continue.
 
     CRITICAL: YOUR FINAL OUTPUT MUST BE VALID JSON ONLY!
 
     Important Notes:
+        - **CRITICAL**: Use the specific HTML section IDs mentioned above to locate data accurately:
+          * `<section id="etablissements">` for establishment data
+          * `<section id="dirigeants">` for director information (including age/birth date)
+          * `<section id="actes" data-id="documents">` for all legal documents
         - If the section/card is scrollable, ensure to scroll to the bottom of the page to load all information before extracting data.
+        - Expand any collapsible sections or click "Show more" buttons to reveal hidden content
         - Use null for missing values, empty arrays [] for missing lists.
         - If multiple items exist in a section (dirigeants, documents_juridiques), include all in the respective arrays.
         - Extract all available years in financial data.
-        - Pay special attention to document sections to extract document names, types, and dates
+        - Pay special attention to the `<section id="actes" data-id="documents">` section to extract ALL document names, types, and dates
+        - In the `<section id="dirigeants">` section, look specifically for age and birth date information which should be available
         - Return ONLY valid JSON format - no additional text or formatting.
         - Ensure all JSON keys use snake_case format.
         - DO NOT include any explanatory text, headers, or markdown formatting.
