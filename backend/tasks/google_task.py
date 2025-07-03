@@ -23,6 +23,10 @@ def google_task(parsed_info):
     
     Once you have the correct COMPANY NAME, go to https://duckduckgo.com.
 
+    CRITICAL INSTRUCTIONS:
+    - DO NOT take screenshots under any circumstances - they are not needed
+    - Focus on text extraction and information gathering only
+
     HUMAN-LIKE BEHAVIOR INSTRUCTIONS:
     - Move mouse naturally between actions (not instant jumps)
     - Add random pauses between 1-3 seconds between major actions

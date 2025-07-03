@@ -11,7 +11,6 @@ def markdown_to_pdf(markdown_text):
     try:
         # Validate input
         if not markdown_text or not isinstance(markdown_text, str):
-            print(f"Debug: Invalid markdown_text: {type(markdown_text)}, {bool(markdown_text)}")
             return None
             
         # Convert markdown to HTML
@@ -141,16 +140,12 @@ def markdown_to_pdf(markdown_text):
         HTML(string=full_html).write_pdf(pdf_buffer)
         pdf_buffer.seek(0)
         
-        result = pdf_buffer.getvalue()
-        print(f"Debug: PDF generated successfully, size: {len(result)} bytes")
-        return result
+        return pdf_buffer.getvalue()
     
     except Exception as e:
-        error_msg = f"Erreur lors de la génération du PDF: {str(e)}"
-        print(f"Debug: {error_msg}")
         # Only show streamlit error if st is available and imported properly
         try:
-            st.error(error_msg)
+            st.error(f"Erreur lors de la génération du PDF: {str(e)}")
         except:
             pass  # Silently fail if streamlit isn't available
         return None 
