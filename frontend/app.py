@@ -2,6 +2,8 @@ import streamlit as st
 from api.api_client import ApiClient
 from constants import *
 import json
+from datetime import datetime
+from helpers.markdown_helper import markdown_to_pdf
 
 
 def safe_currency_format(value, default=0):
@@ -508,21 +510,38 @@ def render_compiled_report(compiled_data):
         st.warning("Aucun rapport compilé disponible")
         return
 
-    # Add download button
-    col1, col2 = st.columns([1, 4])
+    # Add download buttons
+    col1, col2, col3 = st.columns([1, 1, 3])
+    
+    # Generate filename with timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
     with col1:
-        # Generate filename with timestamp
-        from datetime import datetime
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"rapport_compile_{timestamp}.txt"
-        
+        # Text download button
+        filename_txt = f"rapport_compile_{timestamp}.txt"
         st.download_button(
-            label="📥 Télécharger",
+            label="📄 Télécharger TXT",
             data=compiled_data,
-            file_name=filename,
+            file_name=filename_txt,
             mime="text/plain",
             help="Télécharger le rapport compilé en format texte"
         )
+    
+    with col2:
+        # PDF download button
+        filename_pdf = f"rapport_compile_{timestamp}.pdf"
+        pdf_data = markdown_to_pdf(compiled_data)
+        
+        if pdf_data:
+            st.download_button(
+                label="📄 Télécharger PDF",
+                data=pdf_data,
+                file_name=filename_pdf,
+                mime="application/pdf",
+                help="Télécharger le rapport compilé en format PDF avec mise en forme"
+            )
+        else:
+            st.error("Impossible de générer le PDF")
 
     # Display the compiled document
     st.markdown(compiled_data)

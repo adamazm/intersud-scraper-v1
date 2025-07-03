@@ -5,3 +5,5 @@ python-dotenv
 requests
 browser-use
 openai-agents
+markdown
+weasyprint
