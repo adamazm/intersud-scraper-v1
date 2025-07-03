@@ -6,6 +6,8 @@ def societe_scrape_task(company_id, id_type):
     - You MUST return the final result as valid JSON format only
     - DO NOT stop at intermediate steps or return status messages
     - The final output should be the extracted company data in the JSON format specified in step 5
+    - DO NOT take screenshots under any circumstances - they are not needed
+    - If ANY error occurs (captcha, timeout, page not found, etc.), include the error in JSON format and return it immediately
 
     REDIRECT & ERROR HANDLING:
     - If you find yourself on a Google settings page, Google sign-in page, or any page that is NOT societe.com, immediately navigate to https://www.societe.com/
@@ -14,6 +16,13 @@ def societe_scrape_task(company_id, id_type):
         {{
             "error": "chromium_problem",
             "message": "Unable to stay on societe.com domain - redirected to external sites",
+            "company_id": "{company_id}",
+            "id_type": "{id_type}"
+        }}
+    - If you encounter a CAPTCHA, page timeout, access denied, or any other error, immediately return this JSON:
+        {{
+            "error": "access_error",
+            "message": "Error encountered: [describe the specific error]",
             "company_id": "{company_id}",
             "id_type": "{id_type}"
         }}

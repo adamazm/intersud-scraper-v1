@@ -14,6 +14,8 @@ def pappers_scrape_task(company_id: str, id_type):
     - You MUST return the final result as valid JSON format only
     - DO NOT stop at intermediate steps or return status messages
     - The final output should be the extracted company data in the JSON format specified in step 12
+    - DO NOT take screenshots under any circumstances - they are not needed
+    - If ANY error occurs (captcha, timeout, page not found, access denied, etc.), include the error in JSON format and return it immediately
     - If you encounter a CAPTCHA at any point, immediately return the following JSON:
         {{
             "error": "blocked_by_captcha",
@@ -29,6 +31,13 @@ def pappers_scrape_task(company_id: str, id_type):
         {{
             "error": "chromium_problem",
             "message": "Unable to stay on pappers.fr domain - redirected to external sites",
+            "company_id": "{company_id}",
+            "id_type": "{id_type}"
+        }}
+    - If you encounter any other error (page timeout, access denied, server error, etc.), immediately return this JSON:
+        {{
+            "error": "access_error",
+            "message": "Error encountered: [describe the specific error]",
             "company_id": "{company_id}",
             "id_type": "{id_type}"
         }}
